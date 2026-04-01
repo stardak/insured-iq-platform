@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface OnboardingResult {
   success: boolean;
@@ -60,8 +61,11 @@ export async function completeOnboarding(
     };
   }
 
+  // Use admin client (service role) to bypass RLS for onboarding operations.
+  const admin = createAdminClient();
+
   // Check slug uniqueness (exclude placeholder tenants)
-  const { data: existingTenant } = await supabase
+  const { data: existingTenant } = await admin
     .from("tenants")
     .select("id")
     .eq("slug", slug)
@@ -75,21 +79,15 @@ export async function completeOnboarding(
     };
   }
 
-  // Get the user's current profile to find the placeholder tenant
-  const { data: profile } = await supabase
+  // Check if profile already exists
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id")
     .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    return { success: false, error: "Profile not found" };
-  }
-
-  const placeholderTenantId = profile.tenant_id;
+    .maybeSingle();
 
   // Create the real tenant
-  const { data: newTenant, error: tenantError } = await supabase
+  const { data: newTenant, error: tenantError } = await admin
     .from("tenants")
     .insert({
       name: companyName,
@@ -102,29 +100,56 @@ export async function completeOnboarding(
     .single();
 
   if (tenantError || !newTenant) {
+    console.error("[onboarding] Failed to create tenant:", tenantError?.message);
     return {
       success: false,
       error: "Failed to create tenant. Please try again.",
     };
   }
 
-  // Update the profile to point to the real tenant
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ tenant_id: newTenant.id })
-    .eq("id", user.id);
+  if (profile) {
+    // Profile exists (trigger ran) — update it to point to the real tenant
+    const placeholderTenantId = profile.tenant_id;
 
-  if (profileError) {
-    // Clean up: delete the tenant we just created
-    await supabase.from("tenants").delete().eq("id", newTenant.id);
-    return {
-      success: false,
-      error: "Failed to update profile. Please try again.",
-    };
+    const { error: updateError } = await admin
+      .from("profiles")
+      .update({ tenant_id: newTenant.id })
+      .eq("id", user.id);
+
+    if (updateError) {
+      await admin.from("tenants").delete().eq("id", newTenant.id);
+      console.error("[onboarding] Failed to update profile:", updateError.message);
+      return {
+        success: false,
+        error: "Failed to update profile. Please try again.",
+      };
+    }
+
+    // Clean up placeholder tenant
+    await admin
+      .from("tenants")
+      .delete()
+      .eq("id", placeholderTenantId)
+      .eq("name", "Onboarding");
+  } else {
+    // No profile exists (user signed up before trigger was applied)
+    // Create the profile directly, pointing to the real tenant
+    const { error: insertError } = await admin.from("profiles").insert({
+      id: user.id,
+      tenant_id: newTenant.id,
+      role: "owner",
+      email: user.email!,
+    });
+
+    if (insertError) {
+      await admin.from("tenants").delete().eq("id", newTenant.id);
+      console.error("[onboarding] Failed to create profile:", insertError.message);
+      return {
+        success: false,
+        error: "Failed to create profile. Please try again.",
+      };
+    }
   }
-
-  // Delete the placeholder tenant
-  await supabase.from("tenants").delete().eq("id", placeholderTenantId);
 
   redirect("/dashboard/brand");
 }

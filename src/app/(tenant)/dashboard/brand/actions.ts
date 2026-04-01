@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { brandConfigSchema, type BrandConfig } from "@/types/brand";
 
 export async function getBrandConfig(): Promise<{
@@ -16,8 +17,10 @@ export async function getBrandConfig(): Promise<{
     return { data: null, error: "Not authenticated" };
   }
 
-  // Get the user's tenant_id from their profile
-  const { data: profile } = await supabase
+  // Use admin client for profile/tenant queries to bypass RLS
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id")
     .eq("id", user.id)
@@ -28,7 +31,7 @@ export async function getBrandConfig(): Promise<{
   }
 
   // Get the tenant's brand_config
-  const { data: tenant, error } = await supabase
+  const { data: tenant, error } = await admin
     .from("tenants")
     .select("name, brand_config")
     .eq("id", profile.tenant_id)
@@ -74,8 +77,10 @@ export async function saveBrandConfig(
     return { success: false, error: "Not authenticated" };
   }
 
-  // Get the user's profile to find tenant_id and check role
-  const { data: profile } = await supabase
+  // Use admin client for profile queries to bypass RLS
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id, role")
     .eq("id", user.id)
@@ -93,7 +98,7 @@ export async function saveBrandConfig(
   }
 
   // Update both the tenant name and brand_config
-  const { error } = await supabase
+  const { error } = await admin
     .from("tenants")
     .update({
       name: parsed.data.company_name,
@@ -120,7 +125,9 @@ export async function uploadLogo(
     return { url: null, error: "Not authenticated" };
   }
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id")
     .eq("id", user.id)

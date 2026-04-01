@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Routes that don't require authentication */
@@ -27,24 +28,51 @@ function isOnboardingPath(pathname: string): boolean {
 }
 
 /**
- * Check if a user still needs onboarding (has a placeholder tenant).
- * Returns true if the user's tenant name is 'Onboarding'.
+ * Check if a user still needs onboarding.
+ * Uses the service role key to bypass RLS, because the self-referencing
+ * RLS policy on profiles prevents new users from reading their own row
+ * with the anon key.
+ *
+ * Returns true if either:
+ *  - No profile exists for the user
+ *  - The profile's tenant is the placeholder ('Onboarding')
  */
-async function needsOnboarding(
-  supabase: ReturnType<typeof createServerClient>,
-  userId: string
-): Promise<boolean> {
-  const { data: profile } = await supabase
+async function needsOnboarding(userId: string): Promise<boolean> {
+  const admin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id, tenants(name)")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (!profile) return true;
 
-  // Check if the tenant is a placeholder
   const tenant = profile.tenants as { name: string } | null;
   return tenant?.name === "Onboarding";
+}
+
+/**
+ * Look up the user's role using the service role key.
+ */
+async function getUserRole(userId: string): Promise<string | null> {
+  const admin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  return profile?.role ?? null;
 }
 
 export async function updateSession(request: NextRequest) {
@@ -92,20 +120,15 @@ export async function updateSession(request: NextRequest) {
 
   // ── Authenticated user on login page → redirect away ───────
   if (pathname === "/login") {
-    const onboarding = await needsOnboarding(supabase, user.id);
+    const onboarding = await needsOnboarding(user.id);
     if (onboarding) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const dest = ROLE_ROUTES[profile?.role ?? ""] ?? "/dashboard";
+    const role = await getUserRole(user.id);
+    const dest = ROLE_ROUTES[role ?? ""] ?? "/dashboard";
     const url = request.nextUrl.clone();
     url.pathname = dest;
     return NextResponse.redirect(url);
@@ -113,7 +136,7 @@ export async function updateSession(request: NextRequest) {
 
   // ── Onboarding check for protected routes ──────────────────
   if (!isPublicPath(pathname) && !isOnboardingPath(pathname)) {
-    const onboarding = await needsOnboarding(supabase, user.id);
+    const onboarding = await needsOnboarding(user.id);
     if (onboarding) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
@@ -123,7 +146,7 @@ export async function updateSession(request: NextRequest) {
 
   // ── Already onboarded user visiting /onboarding → dashboard ─
   if (isOnboardingPath(pathname)) {
-    const onboarding = await needsOnboarding(supabase, user.id);
+    const onboarding = await needsOnboarding(user.id);
     if (!onboarding) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
@@ -133,20 +156,15 @@ export async function updateSession(request: NextRequest) {
 
   // ── Role-based routing for root "/" ────────────────────────
   if (pathname === "/") {
-    const onboarding = await needsOnboarding(supabase, user.id);
+    const onboarding = await needsOnboarding(user.id);
     if (onboarding) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const dest = ROLE_ROUTES[profile?.role ?? ""] ?? "/dashboard";
+    const role = await getUserRole(user.id);
+    const dest = ROLE_ROUTES[role ?? ""] ?? "/dashboard";
     const url = request.nextUrl.clone();
     url.pathname = dest;
     return NextResponse.redirect(url);
