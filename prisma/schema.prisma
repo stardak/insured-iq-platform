@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Tenants ────────────────────────────────────────────────
+
+model Tenant {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  slug          String    @unique
+  custom_domain String?
+  plan          String    @default("free")
+  status        String    @default("active")
+  brand_config  Json      @default("{}")
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at    DateTime? @db.Timestamptz
+
+  profiles  Profile[]
+  products  Product[]
+  customers Customer[]
+  policies  Policy[]
+
+  @@map("tenants")
+}
+
+// ─── Profiles ───────────────────────────────────────────────
+
+model Profile {
+  id         String    @id @db.Uuid // matches auth.users.id
+  tenant_id  String    @db.Uuid
+  role       String    @default("viewer")
+  first_name String?
+  last_name  String?
+  email      String
+  created_at DateTime  @default(now()) @db.Timestamptz
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at DateTime? @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@map("profiles")
+}
+
+// ─── Products ───────────────────────────────────────────────
+
+model Product {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  type       String // car | pet | life | bike | home | health
+  enabled    Boolean   @default(false)
+  config     Json      @default("{}")
+  created_at DateTime  @default(now()) @db.Timestamptz
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at DateTime? @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, type])
+  @@index([tenant_id])
+  @@map("products")
+}
+
+// ─── Customers ──────────────────────────────────────────────
+
+model Customer {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  email      String
+  first_name String?
+  last_name  String?
+  created_at DateTime  @default(now()) @db.Timestamptz
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at DateTime? @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  policies Policy[]
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id])
+  @@map("customers")
+}
+
+// ─── Policies ───────────────────────────────────────────────
+
+model Policy {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String    @db.Uuid
+  customer_id  String    @db.Uuid
+  product_type String // car | pet | life | bike | home | health
+  status       String    @default("draft")
+  premium      Decimal   @default(0) @db.Decimal(12, 2)
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  metadata     Json      @default("{}")
+  created_at   DateTime  @default(now()) @db.Timestamptz
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at   DateTime? @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([customer_id])
+  @@map("policies")
+}
