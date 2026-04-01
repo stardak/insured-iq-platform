@@ -88,12 +88,17 @@ id, tenant_id, email, first_name, last_name, created_at
 - Do not commit .env files
 
 ## Current build phase
-Phase 1 MVP only. Focus on:
+Phase 1 ✅ — Completed:
 1. Supabase schema and RLS policies for core tables
-2. Prisma models matching that schema
-3. Auth middleware (session check and tenant routing)
-4. Basic tenant dashboard shell with sidebar nav
-5. Tenant config page (brand settings)
-6. Product toggle page
+2. Auth middleware (session check and tenant routing)
+3. Basic tenant dashboard shell with sidebar nav
+4. Tenant config page (brand settings)
+5. Product toggle page
+
+Phase 2 — In progress:
+1. Customer self-service portal shell (`/portal`)
+2. Portal login page (`/portal/login`) — separate from tenant auth
+3. Branded portal layout using tenant `brand_config` (zero Insured IQ branding)
+4. Policies list page with placeholder data
 
 Do not build payments, analytics, compliance, or AI features yet.

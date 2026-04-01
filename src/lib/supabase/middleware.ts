@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Routes that don't require authentication */
-const PUBLIC_PATHS = ["/login", "/auth"];
+const PUBLIC_PATHS = ["/login", "/auth", "/portal/login"];
 
 /** Routes accessible to authenticated users who haven't completed onboarding */
 const ONBOARDING_PATHS = ["/onboarding"];
@@ -25,6 +25,10 @@ function isPublicPath(pathname: string): boolean {
 
 function isOnboardingPath(pathname: string): boolean {
   return ONBOARDING_PATHS.some((p) => pathname.startsWith(p));
+}
+
+function isPortalPath(pathname: string): boolean {
+  return pathname.startsWith("/portal");
 }
 
 /**
@@ -114,7 +118,15 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse;
     }
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    // Portal routes redirect to portal login, not the tenant login
+    url.pathname = isPortalPath(pathname) ? "/portal/login" : "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // ── Authenticated customer on portal login → redirect to portal ─
+  if (pathname === "/portal/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/portal";
     return NextResponse.redirect(url);
   }
 
@@ -134,8 +146,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // ── Onboarding check for protected routes ──────────────────
-  if (!isPublicPath(pathname) && !isOnboardingPath(pathname)) {
+  // ── Onboarding check for protected routes (skip portal) ────
+  if (!isPublicPath(pathname) && !isOnboardingPath(pathname) && !isPortalPath(pathname)) {
     const onboarding = await needsOnboarding(user.id);
     if (onboarding) {
       const url = request.nextUrl.clone();

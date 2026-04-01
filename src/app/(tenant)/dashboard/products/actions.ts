@@ -40,7 +40,7 @@ export async function getProducts(): Promise<{
     return { data: null, error: "No profile found" };
   }
 
-  const { data: products, error } = await supabase
+  const { data: products, error } = await admin
     .from("products")
     .select("id, type, enabled")
     .eq("tenant_id", profile.tenant_id);
@@ -106,7 +106,7 @@ export async function toggleProduct(
     };
   }
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("products")
     .upsert(
       {
