@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ProductType = "car" | "pet" | "life" | "bike" | "home" | "health";
 
@@ -27,7 +28,9 @@ export async function getProducts(): Promise<{
     return { data: null, error: "Not authenticated" };
   }
 
-  const { data: profile } = await supabase
+  // Use admin client to bypass self-referencing RLS on profiles
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id")
     .eq("id", user.id)
@@ -84,7 +87,9 @@ export async function toggleProduct(
     return { success: false, error: "Not authenticated" };
   }
 
-  const { data: profile } = await supabase
+  // Use admin client to bypass self-referencing RLS on profiles
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id, role")
     .eq("id", user.id)

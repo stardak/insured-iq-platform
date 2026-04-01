@@ -39,7 +39,9 @@ export async function getTeamMembers(): Promise<{
     return { data: null, error: "Not authenticated" };
   }
 
-  const { data: profile } = await supabase
+  // Use admin client to bypass self-referencing RLS on profiles
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("tenant_id")
     .eq("id", user.id)
@@ -49,7 +51,7 @@ export async function getTeamMembers(): Promise<{
     return { data: null, error: "No profile found" };
   }
 
-  const { data: members, error } = await supabase
+  const { data: members, error } = await admin
     .from("profiles")
     .select("id, first_name, last_name, email, role, created_at")
     .eq("tenant_id", profile.tenant_id)
@@ -88,8 +90,9 @@ export async function inviteTeamMember(
     return { success: false, error: "Not authenticated" };
   }
 
-  // Verify caller is owner / super_admin
-  const { data: callerProfile } = await supabase
+  // Verify caller is owner / super_admin (admin client to bypass RLS)
+  const admin = createAdminClient();
+  const { data: callerProfile } = await admin
     .from("profiles")
     .select("tenant_id, role")
     .eq("id", user.id)
@@ -107,7 +110,6 @@ export async function inviteTeamMember(
   }
 
   // Check if user already exists in this tenant
-  const admin = createAdminClient();
 
   const { data: existingProfile } = await admin
     .from("profiles")

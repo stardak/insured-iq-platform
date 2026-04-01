@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, Palette, Users, ShieldCheck, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard,
+  Package,
+  Palette,
+  Users,
+  ShieldCheck,
+  LogOut,
+  ChevronsUpDown,
+} from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import {
   Sidebar,
@@ -16,7 +25,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
+
+// ─── Navigation items ───────────────────────────────────────
 
 const NAV_ITEMS = [
   {
@@ -41,9 +53,59 @@ const NAV_ITEMS = [
   },
 ];
 
+// ─── User profile data ─────────────────────────────────────
+
+type UserProfile = {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+function useUserProfile(): UserProfile | null {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+
+      supabase
+        .from("profiles")
+        .select("first_name, last_name, email")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setProfile(data);
+          else setProfile({ email: user.email ?? "", first_name: null, last_name: null });
+        });
+    });
+  }, []);
+
+  return profile;
+}
+
+function getDisplayName(profile: UserProfile): string {
+  const parts = [profile.first_name, profile.last_name].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : profile.email.split("@")[0];
+}
+
+function getInitials(profile: UserProfile): string {
+  if (profile.first_name && profile.last_name) {
+    return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+  }
+  return profile.email[0]?.toUpperCase() ?? "U";
+}
+
+// ─── Sidebar component ─────────────────────────────────────
+
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const profile = useUserProfile();
 
   async function handleLogout() {
     const supabase = createBrowserClient(
@@ -56,18 +118,19 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible="icon">
+      {/* ── Logo area ──────────────────────────────────── */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <ShieldCheck className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Insured IQ</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    Dashboard
+                  <span className="truncate text-xs text-sidebar-foreground/60">
+                    Platform
                   </span>
                 </div>
               </Link>
@@ -76,32 +139,64 @@ export function DashboardSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
+      <SidebarSeparator />
+
+      {/* ── Main nav ───────────────────────────────────── */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname.startsWith(item.href);
+
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
+      {/* ── User profile + logout ──────────────────────── */}
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              tooltip={profile ? getDisplayName(profile) : "User"}
+            >
+              {/* Avatar circle */}
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-xs font-medium">
+                {profile ? getInitials(profile) : "U"}
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  {profile ? getDisplayName(profile) : "Loading…"}
+                </span>
+                <span className="truncate text-xs text-sidebar-foreground/60">
+                  {profile?.email ?? ""}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/40" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Log out" onClick={handleLogout}>
               <LogOut />
@@ -115,4 +210,3 @@ export function DashboardSidebar() {
     </Sidebar>
   );
 }
-
