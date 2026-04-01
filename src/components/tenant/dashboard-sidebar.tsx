@@ -29,7 +29,7 @@ const NAV_ITEMS = [
   },
   {
     title: "Brand Settings",
-    href: "/dashboard/brand-settings",
+    href: "/dashboard/brand",
     icon: Palette,
   },
   {
