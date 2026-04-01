@@ -1,6 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Routes that don't require authentication */
+const PUBLIC_PATHS = ["/login", "/auth"];
+
+/** Role → path prefix mapping */
+const ROLE_ROUTES: Record<string, string> = {
+  super_admin: "/super-admin",
+  owner: "/dashboard",
+  sales: "/dashboard",
+  finance: "/dashboard",
+  marketing: "/dashboard",
+  viewer: "/dashboard",
+  customer: "/portal",
+};
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -32,15 +50,44 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If there is no authenticated user and the path is not public,
-  // redirect to login. Adjust public paths as needed.
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  const { pathname } = request.nextUrl;
+
+  // ── Unauthenticated users ──────────────────────────────────
+  if (!user) {
+    if (isPublicPath(pathname)) {
+      return supabaseResponse;
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // ── Authenticated user on login page → redirect away ───────
+  if (pathname === "/login") {
+    // Look up role to determine where to send them
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const dest = ROLE_ROUTES[profile?.role ?? ""] ?? "/dashboard";
+    const url = request.nextUrl.clone();
+    url.pathname = dest;
+    return NextResponse.redirect(url);
+  }
+
+  // ── Role-based routing for root "/" ────────────────────────
+  if (pathname === "/") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const dest = ROLE_ROUTES[profile?.role ?? ""] ?? "/dashboard";
+    const url = request.nextUrl.clone();
+    url.pathname = dest;
     return NextResponse.redirect(url);
   }
 
