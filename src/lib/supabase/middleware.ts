@@ -4,6 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Routes that don't require authentication */
 const PUBLIC_PATHS = ["/login", "/auth"];
 
+/** Routes accessible to authenticated users who haven't completed onboarding */
+const ONBOARDING_PATHS = ["/onboarding"];
+
 /** Role → path prefix mapping */
 const ROLE_ROUTES: Record<string, string> = {
   super_admin: "/super-admin",
@@ -17,6 +20,31 @@ const ROLE_ROUTES: Record<string, string> = {
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}
+
+function isOnboardingPath(pathname: string): boolean {
+  return ONBOARDING_PATHS.some((p) => pathname.startsWith(p));
+}
+
+/**
+ * Check if a user still needs onboarding (has a placeholder tenant).
+ * Returns true if the user's tenant name is 'Onboarding'.
+ */
+async function needsOnboarding(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string
+): Promise<boolean> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("tenant_id, tenants(name)")
+    .eq("id", userId)
+    .single();
+
+  if (!profile) return true;
+
+  // Check if the tenant is a placeholder
+  const tenant = profile.tenants as { name: string } | null;
+  return tenant?.name === "Onboarding";
 }
 
 export async function updateSession(request: NextRequest) {
@@ -64,7 +92,13 @@ export async function updateSession(request: NextRequest) {
 
   // ── Authenticated user on login page → redirect away ───────
   if (pathname === "/login") {
-    // Look up role to determine where to send them
+    const onboarding = await needsOnboarding(supabase, user.id);
+    if (onboarding) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -77,8 +111,35 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // ── Onboarding check for protected routes ──────────────────
+  if (!isPublicPath(pathname) && !isOnboardingPath(pathname)) {
+    const onboarding = await needsOnboarding(supabase, user.id);
+    if (onboarding) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ── Already onboarded user visiting /onboarding → dashboard ─
+  if (isOnboardingPath(pathname)) {
+    const onboarding = await needsOnboarding(supabase, user.id);
+    if (!onboarding) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // ── Role-based routing for root "/" ────────────────────────
   if (pathname === "/") {
+    const onboarding = await needsOnboarding(supabase, user.id);
+    if (onboarding) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
