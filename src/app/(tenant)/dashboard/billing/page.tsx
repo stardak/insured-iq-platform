@@ -9,12 +9,12 @@ export default async function BillingPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-semibold text-gray-900">Billing</h1>
+          <p className="mt-1 text-sm text-gray-500">
             Manage your subscription and billing details.
           </p>
         </div>
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+        <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200 ring-inset">
           {error ?? "Failed to load billing information."}
         </div>
       </div>
@@ -24,8 +24,8 @@ export default async function BillingPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold text-gray-900">Billing</h1>
+        <p className="mt-1 text-sm text-gray-500">
           Manage your subscription and billing details.
         </p>
       </div>
