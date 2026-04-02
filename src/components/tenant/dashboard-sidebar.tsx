@@ -4,65 +4,28 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  BarChart3,
-  Package,
-  Palette,
-  Users,
-  CreditCard,
-  ShieldCheck,
-  LogOut,
-  ChevronsUpDown,
-} from "lucide-react";
+  HomeIcon,
+  ChartBarIcon,
+  CubeIcon,
+  SwatchIcon,
+  RectangleGroupIcon,
+  UsersIcon,
+  CreditCardIcon,
+  ArrowRightStartOnRectangleIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/24/outline";
 import { createBrowserClient } from "@supabase/ssr";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-  SidebarSeparator,
-} from "@/components/ui/sidebar";
 
 // ─── Navigation items ───────────────────────────────────────
 
 const NAV_ITEMS = [
-  {
-    title: "Overview",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Products",
-    href: "/dashboard/products",
-    icon: Package,
-  },
-  {
-    title: "Brand Settings",
-    href: "/dashboard/brand",
-    icon: Palette,
-  },
-  {
-    title: "Team",
-    href: "/dashboard/team",
-    icon: Users,
-  },
-  {
-    title: "Billing",
-    href: "/dashboard/billing",
-    icon: CreditCard,
-  },
+  { name: "Overview", href: "/dashboard", icon: HomeIcon },
+  { name: "Analytics", href: "/dashboard/analytics", icon: ChartBarIcon },
+  { name: "Products", href: "/dashboard/products", icon: CubeIcon },
+  { name: "Brand Settings", href: "/dashboard/brand", icon: SwatchIcon },
+  { name: "Page Builder", href: "/dashboard/page-builder", icon: RectangleGroupIcon },
+  { name: "Team", href: "/dashboard/team", icon: UsersIcon },
+  { name: "Billing", href: "/dashboard/billing", icon: CreditCardIcon },
 ];
 
 // ─── User profile data ─────────────────────────────────────
@@ -112,9 +75,13 @@ function getInitials(profile: UserProfile): string {
   return profile.email[0]?.toUpperCase() ?? "U";
 }
 
-// ─── Sidebar component ─────────────────────────────────────
+function cn(...classes: (string | boolean | undefined | null)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
-export function DashboardSidebar() {
+// ─── Sidebar component (Tailwind Plus: 02-dark) ────────────
+
+export function DashboardSidebar({ tenantSlug }: { tenantSlug?: string | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const profile = useUserProfile();
@@ -129,36 +96,21 @@ export function DashboardSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
-      {/* ── Logo area ──────────────────────────────────── */}
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <ShieldCheck className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Insured IQ</span>
-                  <span className="truncate text-xs text-sidebar-foreground/60">
-                    Platform
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+    <div className="flex h-full w-72 flex-col bg-gray-900">
+      {/* ── Logo / Branding ──────────────────────────── */}
+      <div className="flex h-16 shrink-0 items-center gap-x-3 px-6">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500 text-white text-sm font-bold">
+          IQ
+        </div>
+        <span className="text-sm font-semibold text-white">Insured IQ</span>
+      </div>
 
-      <SidebarSeparator />
-
-      {/* ── Main nav ───────────────────────────────────── */}
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+      {/* ── Navigation ───────────────────────────────── */}
+      <nav className="flex flex-1 flex-col px-6">
+        <ul role="list" className="flex flex-1 flex-col gap-y-7">
+          {/* Primary nav */}
+          <li>
+            <ul role="list" className="-mx-2 space-y-1">
               {NAV_ITEMS.map((item) => {
                 const isActive =
                   item.href === "/dashboard"
@@ -166,59 +118,91 @@ export function DashboardSidebar() {
                     : pathname.startsWith(item.href);
 
                 return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        isActive
+                          ? "bg-white/5 text-white"
+                          : "text-gray-400 hover:bg-white/5 hover:text-white",
+                        "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                      )}
                     >
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                      <item.icon
+                        aria-hidden="true"
+                        className={cn(
+                          isActive
+                            ? "text-white"
+                            : "text-gray-400 group-hover:text-white",
+                          "size-6 shrink-0"
+                        )}
+                      />
+                      {item.name}
+                    </Link>
+                  </li>
                 );
               })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+            </ul>
+          </li>
 
-      {/* ── User profile + logout ──────────────────────── */}
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              tooltip={profile ? getDisplayName(profile) : "User"}
-            >
-              {/* Avatar circle */}
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground text-xs font-medium">
+          {/* External links section */}
+          {tenantSlug && (
+            <li>
+              <div className="text-xs/6 font-semibold text-gray-400">
+                Quick links
+              </div>
+              <ul role="list" className="-mx-2 mt-2 space-y-1">
+                <li>
+                  <a
+                    href={`https://insured-iq-platform.vercel.app/${tenantSlug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-white/5 hover:text-white"
+                  >
+                    <ArrowTopRightOnSquareIcon
+                      aria-hidden="true"
+                      className="size-6 shrink-0 text-gray-400 group-hover:text-white"
+                    />
+                    <span className="truncate">View public page</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          )}
+
+          {/* ── User profile + logout ─────────────────── */}
+          <li className="-mx-6 mt-auto">
+            {/* User info */}
+            <div className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-800 text-xs font-medium text-gray-300 ring-1 ring-white/10">
                 {profile ? getInitials(profile) : "U"}
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
+              <div className="min-w-0 flex-1">
+                <span className="block truncate" aria-hidden="true">
                   {profile ? getDisplayName(profile) : "Loading…"}
                 </span>
-                <span className="truncate text-xs text-sidebar-foreground/60">
-                  {profile?.email ?? ""}
-                </span>
+                {profile?.email && (
+                  <span className="block truncate text-xs font-normal text-gray-400">
+                    {profile.email}
+                  </span>
+                )}
               </div>
-              <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/40" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Log out" onClick={handleLogout}>
-              <LogOut />
-              <span>Log out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+            </div>
 
-      <SidebarRail />
-    </Sidebar>
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-gray-400 hover:bg-white/5 hover:text-white"
+            >
+              <ArrowRightStartOnRectangleIcon
+                aria-hidden="true"
+                className="size-6 shrink-0"
+              />
+              Log out
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
   );
 }

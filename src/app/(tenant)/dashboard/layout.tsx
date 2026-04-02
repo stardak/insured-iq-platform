@@ -1,31 +1,54 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardSidebar } from "@/components/tenant/dashboard-sidebar";
-import { DashboardHeader } from "@/components/tenant/dashboard-header";
 import { DemoBanner } from "@/components/tenant/demo-banner";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export default function DashboardLayout({
+async function getTenantSlug(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("tenant_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.tenant_id) return null;
+
+    const { data: tenant } = await admin
+      .from("tenants")
+      .select("slug")
+      .eq("id", profile.tenant_id)
+      .single();
+
+    return tenant?.slug ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const tenantSlug = await getTenantSlug();
+
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <DashboardSidebar />
-        <SidebarInset>
-          <DemoBanner />
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-6">
-            <SidebarTrigger className="-ml-2" />
-            <Separator orientation="vertical" className="mr-2 !h-4" />
-            <DashboardHeader />
-          </header>
-          <main className="flex-1 overflow-auto bg-muted/30 p-8">
-            <div className="mx-auto max-w-6xl">{children}</div>
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar — fixed width, full height */}
+      <DashboardSidebar tenantSlug={tenantSlug} />
+
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <DemoBanner />
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-8">
+          <div className="mx-auto max-w-7xl">{children}</div>
+        </main>
+      </div>
+    </div>
   );
 }

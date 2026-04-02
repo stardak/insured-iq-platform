@@ -3,126 +3,233 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { login, loginWithGoogle } from "./actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ShieldCheck } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+
+// ─── Google SVG icon ────────────────────────────────────────
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
       <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+        d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
+        fill="#EA4335"
+      />
+      <path
+        d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z"
         fill="#4285F4"
       />
       <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+        d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.275 6.60986C0.46 8.22986 0 10.0599 0 11.9999C0 13.9399 0.46 15.7699 1.28 17.3899L5.26498 14.2949Z"
         fill="#FBBC05"
       />
       <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
+        d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L16.0804 18.095C15.0054 18.82 13.6204 19.245 12.0004 19.245C8.8704 19.245 6.21537 17.135 5.2654 14.29L1.27539 17.385C3.25539 21.31 7.3104 24.0001 12.0004 24.0001Z"
+        fill="#34A853"
       />
     </svg>
   );
 }
+
+// ─── Login Form (Tailwind Plus: 04-split-screen) ────────────
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <ShieldCheck className="size-6" />
-          </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Insured IQ
-          </CardTitle>
-          <CardDescription>
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+    <div className="flex min-h-screen">
+      {/* Left panel — branded */}
+      <div className="relative hidden w-0 flex-1 lg:block">
+        {/* Solid indigo base background */}
+        <div className="absolute inset-0 bg-indigo-600" />
 
-          {/* Google OAuth */}
-          <form action={loginWithGoogle}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </Button>
-          </form>
+        {/* Gradient overlay for premium feel */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800" />
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                or continue with email
+        {/* Decorative gradient blob */}
+        <svg
+          viewBox="0 0 1024 1024"
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 -z-0 size-[64rem] -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(closest-side,white,transparent)]"
+        >
+          <circle
+            r={512}
+            cx={512}
+            cy={512}
+            fill="url(#login-gradient)"
+            fillOpacity="0.25"
+          />
+          <defs>
+            <radialGradient id="login-gradient">
+              <stop stopColor="#7775D6" />
+              <stop offset={1} stopColor="#E935C1" />
+            </radialGradient>
+          </defs>
+        </svg>
+
+        {/* Content on branded panel */}
+        <div className="relative z-10 flex h-full flex-col justify-between p-12">
+          <div>
+            <div className="flex items-center gap-x-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-white/20 text-white text-sm font-bold backdrop-blur-sm">
+                IQ
+              </div>
+              <span className="text-lg font-semibold text-white">
+                Insured IQ
               </span>
             </div>
           </div>
 
-          {/* Email / Password */}
-          <form action={login} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@company.com"
-                required
-                autoComplete="email"
-              />
+          <div className="max-w-md">
+            <h1 className="text-4xl font-semibold tracking-tight text-white">
+              The smarter way to manage insurance
+            </h1>
+            <p className="mt-4 text-lg text-indigo-100">
+              Launch your own branded insurance company in minutes. White-label
+              products, automated underwriting, and beautiful customer
+              experiences — all powered by Insured IQ.
+            </p>
+            <div className="mt-8 flex items-center gap-x-6">
+              <div className="flex -space-x-2">
+                {["bg-indigo-300", "bg-pink-300", "bg-amber-300", "bg-emerald-300"].map((bg, i) => (
+                  <div
+                    key={i}
+                    className={`size-8 rounded-full ${bg} ring-2 ring-indigo-600`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-indigo-200">
+                Trusted by 50+ insurance brands
+              </span>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
+          <p className="text-sm text-indigo-300">
+            © 2026 Insured IQ. All rights reserved.
+          </p>
+        </div>
+      </div>
+
+      {/* Right panel — sign-in form */}
+      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+        <div className="mx-auto w-full max-w-sm lg:w-96">
+          {/* Mobile logo (hidden on desktop where left panel shows) */}
+          <div className="lg:hidden">
+            <div className="flex items-center gap-x-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold">
+                IQ
+              </div>
+              <span className="text-lg font-semibold text-gray-900">
+                Insured IQ
+              </span>
             </div>
+          </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Sign in
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="lg:mt-0 mt-8">
+            <h2 className="text-2xl/9 font-bold tracking-tight text-gray-900">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-sm/6 text-gray-500">
+              Manage your insurance business from one dashboard.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            {/* Error message */}
+            {error && (
+              <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200 ring-inset">
+                {error}
+              </div>
+            )}
+
+            {/* Email / Password form */}
+            <form action={login} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm/6 font-medium text-gray-900"
+                >
+                  Email address
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    placeholder="you@company.com"
+                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm/6 font-medium text-gray-900"
+                >
+                  Password
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Sign in
+                </button>
+              </div>
+            </form>
+
+            {/* Divider */}
+            <div className="mt-10">
+              <div className="relative">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 flex items-center"
+                >
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm/6 font-medium">
+                  <span className="bg-white px-6 text-gray-900">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              {/* Google OAuth */}
+              <div className="mt-6">
+                <form action={loginWithGoogle}>
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus-visible:ring-transparent"
+                  >
+                    <GoogleIcon />
+                    <span className="text-sm/6 font-semibold">Google</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
+// ─── Page ────────────────────────────────────────────────────
 
 export default function LoginPage() {
   return (

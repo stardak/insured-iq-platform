@@ -9,12 +9,29 @@ import {
   Home,
   Activity,
   ArrowRight,
+  Shield,
+  Clock,
+  Headphones,
+  Star,
+  Zap,
+  Target,
+  Award,
+  Globe,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Metadata } from "next";
+import type {
+  PageConfig,
+  PageSection,
+  FaqItem,
+  TestimonialItem,
+  FeatureItem,
+} from "@/types/brand";
+import FaqDisclosure from "./faq-disclosure";
 
-// ─── Icon map (can't pass components from server actions) ────
+// ─── Icon map ────────────────────────────────────────────────
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Car,
@@ -23,6 +40,16 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Bike,
   Home,
   Activity,
+  Shield,
+  Clock,
+  Headphones,
+  HeadphonesIcon: Headphones,
+  Star,
+  Zap,
+  Target,
+  Award,
+  Globe,
+  Briefcase,
 };
 
 // ─── SEO metadata ────────────────────────────────────────────
@@ -42,6 +69,322 @@ export async function generateMetadata({
   };
 }
 
+// ─── Hero Section (Tailwind Plus: simple-centered-with-background-image) ─────
+
+function HeroSection({
+  headline,
+  subheadline,
+  ctaPrimary,
+  ctaSecondary,
+  heroImage,
+  primaryColour,
+  secondaryColour,
+  slug,
+}: {
+  headline: string | null;
+  subheadline: string;
+  ctaPrimary: string;
+  ctaSecondary: string;
+  heroImage: string | null;
+  primaryColour: string;
+  secondaryColour: string;
+  slug: string;
+}) {
+  return (
+    <div className="relative isolate overflow-hidden bg-white">
+      {/* Background image or subtle gradient */}
+      {heroImage ? (
+        <>
+          <img
+            alt=""
+            src={heroImage}
+            className="absolute inset-0 -z-10 size-full object-cover"
+          />
+          <div className="absolute inset-0 -z-10 bg-black/50" />
+        </>
+      ) : (
+        <div
+          className="absolute inset-0 -z-10 opacity-[0.03]"
+          style={{
+            background: `radial-gradient(circle at 20% 30%, ${primaryColour} 0%, transparent 50%), radial-gradient(circle at 80% 70%, ${secondaryColour} 0%, transparent 50%)`,
+          }}
+        />
+      )}
+
+      {/* Decorative gradient blobs — inspired by Tailwind Plus hero 05 */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+      >
+        <div
+          style={{
+            clipPath:
+              "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
+            background: `linear-gradient(to top right, ${primaryColour}, ${secondaryColour})`,
+          }}
+          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+        />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+          {/* Badge pill */}
+          <div className="hidden sm:mb-8 sm:flex sm:justify-center">
+            <div
+              className={`relative rounded-full px-3 py-1 text-sm/6 ring-1 ${
+                heroImage
+                  ? "text-white/80 ring-white/20"
+                  : "text-gray-600 ring-gray-900/10 hover:ring-gray-900/20"
+              }`}
+            >
+              <span
+                className="mr-2 inline-block size-2 rounded-full animate-pulse"
+                style={{ backgroundColor: heroImage ? "#fff" : secondaryColour }}
+              />
+              Trusted by thousands of customers
+            </div>
+          </div>
+
+          <div className="text-center">
+            {headline ? (
+              <h1
+                className={`text-5xl font-semibold tracking-tight text-balance sm:text-7xl ${
+                  heroImage ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {headline}
+              </h1>
+            ) : (
+              <h1
+                className={`text-5xl font-semibold tracking-tight text-balance sm:text-7xl ${
+                  heroImage ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Insurance made{" "}
+                <span
+                  style={{
+                    color: heroImage ? "#fff" : primaryColour,
+                  }}
+                >
+                  simple
+                </span>
+              </h1>
+            )}
+
+            <p
+              className={`mt-8 text-lg font-medium text-pretty sm:text-xl/8 ${
+                heroImage ? "text-white/80" : "text-gray-600"
+              }`}
+            >
+              {subheadline}
+            </p>
+
+            {/* Two CTA buttons — primary solid, secondary text link */}
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <a
+                href="#products"
+                className="rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 transition-all hover:opacity-90"
+                style={{
+                  backgroundColor: primaryColour,
+                  outlineColor: primaryColour,
+                }}
+              >
+                {ctaPrimary}
+              </a>
+              <a
+                href={`/portal/login?tenant=${slug}`}
+                className={`text-sm/6 font-semibold ${
+                  heroImage ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {ctaSecondary} <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom decorative blob */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+      >
+        <div
+          style={{
+            clipPath:
+              "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
+            background: `linear-gradient(to top right, ${secondaryColour}, ${primaryColour})`,
+          }}
+          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Testimonials Section (Tailwind Plus: 10-subtle-grid) ────
+
+function TestimonialsSection({
+  section,
+  primaryColour,
+}: {
+  section: PageSection;
+  primaryColour: string;
+}) {
+  const items = section.content.items as TestimonialItem[];
+  if (!items.length) return null;
+
+  return (
+    <div className="bg-white py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2
+            className="text-base/7 font-semibold"
+            style={{ color: primaryColour }}
+          >
+            Testimonials
+          </h2>
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">
+            What our customers say
+          </p>
+        </div>
+
+        {/* Masonry column layout from Tailwind Plus */}
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item, i) => (
+              <div
+                key={i}
+                className=""
+              >
+                <figure className="rounded-2xl bg-gray-50 p-8 text-sm/6">
+                  {/* Star rating */}
+                  <div className="flex gap-0.5 mb-4">
+                    {Array.from({ length: 5 }).map((_, star) => (
+                      <Star
+                        key={star}
+                        className={`size-4 ${
+                          star < item.rating
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-gray-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <blockquote className="text-gray-900">
+                    <p>{`\u201c${item.quote}\u201d`}</p>
+                  </blockquote>
+
+                  <figcaption className="mt-6 flex items-center gap-x-4">
+                    {/* Avatar initials */}
+                    <div
+                      className="flex size-10 items-center justify-center rounded-full text-white text-xs font-bold"
+                      style={{ backgroundColor: primaryColour }}
+                    >
+                      {item.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {item.name}
+                      </div>
+                      <div className="text-gray-600">Verified customer</div>
+                    </div>
+                  </figcaption>
+                </figure>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── FAQ Section (Tailwind Plus: 02-centered-accordion) ──────
+
+function FaqSection({ section }: { section: PageSection }) {
+  const items = section.content.items as FaqItem[];
+  if (!items.length) return null;
+
+  return (
+    <div className="bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+            Frequently asked questions
+          </h2>
+          <FaqDisclosure items={items} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Features Section (Tailwind Plus: 19.centered-2x2-grid) ──
+
+function FeaturesSection({
+  section,
+  primaryColour,
+}: {
+  section: PageSection;
+  primaryColour: string;
+}) {
+  const items = section.content.items as FeatureItem[];
+  if (!items.length) return null;
+
+  return (
+    <div className="bg-white py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2
+            className="text-base/7 font-semibold"
+            style={{ color: primaryColour }}
+          >
+            Why choose us
+          </h2>
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance">
+            Everything you need for complete peace of mind
+          </p>
+          <p className="mt-6 text-lg/8 text-gray-700">
+            We make insurance simple, transparent, and affordable — so you can
+            focus on what matters most.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 lg:max-w-none lg:grid-cols-3 lg:gap-y-16">
+            {items.map((item, i) => {
+              const Icon = ICON_MAP[item.icon] ?? Shield;
+              return (
+                <div key={i} className="relative pl-16">
+                  <dt className="text-base/7 font-semibold text-gray-900">
+                    <div
+                      className="absolute top-0 left-0 flex size-10 items-center justify-center rounded-lg"
+                      style={{ backgroundColor: primaryColour }}
+                    >
+                      <Icon aria-hidden="true" className="size-6 text-white" />
+                    </div>
+                    {item.title}
+                  </dt>
+                  <dd className="mt-2 text-base/7 text-gray-600">
+                    {item.description}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────
 
 export default async function TenantLandingPage({
@@ -56,85 +399,65 @@ export default async function TenantLandingPage({
     notFound();
   }
 
-  const { brand, products, tenantName } = data;
+  const { brand, products, tenantName, pageConfig } = data;
+  const pc = pageConfig as PageConfig;
+
+  // Determine hero content — use custom or defaults
+  const heroHeadline = pc.hero_headline || null;
+  const heroSubheadline =
+    pc.hero_subheadline ||
+    `Get covered in minutes with ${tenantName}. Choose from our range of insurance products and get a personalised quote tailored to your needs.`;
+  const ctaPrimary = pc.hero_cta_primary_text || "View our products";
+  const ctaSecondary = pc.hero_cta_secondary_text || "Manage my policy";
+  const heroImage = pc.hero_image_url || null;
+
+  // Sort enabled sections by order
+  const enabledSections = (pc.sections ?? [])
+    .filter((s) => s.enabled)
+    .sort((a, b) => a.order - b.order);
 
   return (
     <div>
-      {/* Hero */}
-      <section
-        className="relative overflow-hidden py-24 sm:py-32"
-        style={{
-          background: `linear-gradient(135deg, ${brand.primary_colour}0A 0%, ${brand.secondary_colour}0A 50%, ${brand.primary_colour}05 100%)`,
-        }}
-      >
-        {/* Decorative circles */}
-        <div
-          className="absolute -top-24 -right-24 size-96 rounded-full opacity-[0.04]"
-          style={{ backgroundColor: brand.primary_colour }}
-        />
-        <div
-          className="absolute -bottom-32 -left-32 size-[500px] rounded-full opacity-[0.03]"
-          style={{ backgroundColor: brand.secondary_colour }}
-        />
-
-        <div className="relative mx-auto max-w-6xl px-6 text-center">
-          {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium text-muted-foreground bg-white/80 backdrop-blur">
-            <span
-              className="size-2 rounded-full animate-pulse"
-              style={{ backgroundColor: brand.secondary_colour }}
-            />
-            Trusted by thousands of customers
-          </div>
-
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Insurance made{" "}
-            <span style={{ color: brand.primary_colour }}>simple</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-            Get covered in minutes with {tenantName}. Choose from our range of
-            insurance products and get a personalised quote tailored to your needs.
-          </p>
-
-          {/* CTA */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#products"
-              className="inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]"
-              style={{ backgroundColor: brand.primary_colour }}
-            >
-              View our products
-              <ArrowRight className="size-4" />
-            </a>
-            <a
-              href={`/portal/login?tenant=${slug}`}
-              className="inline-flex items-center gap-2 rounded-xl border px-8 py-3.5 text-base font-semibold transition-colors hover:bg-gray-50"
-            >
-              Manage my policy
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* Hero — Tailwind Plus: simple-centered-with-background-image */}
+      <HeroSection
+        headline={heroHeadline}
+        subheadline={heroSubheadline}
+        ctaPrimary={ctaPrimary}
+        ctaSecondary={ctaSecondary}
+        heroImage={heroImage}
+        primaryColour={brand.primary_colour}
+        secondaryColour={brand.secondary_colour}
+        slug={slug}
+      />
 
       {/* Products Grid */}
-      <section id="products" className="mx-auto max-w-6xl px-6 py-16 scroll-mt-8">
-        <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Our Products
+      <section
+        id="products"
+        className="mx-auto max-w-7xl px-6 py-24 sm:py-32 scroll-mt-8 lg:px-8"
+      >
+        <div className="mx-auto max-w-2xl text-center">
+          <h2
+            className="text-base/7 font-semibold"
+            style={{ color: brand.primary_colour }}
+          >
+            Products
           </h2>
-          <p className="mt-2 text-muted-foreground">
-            Choose the type of insurance you need
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">
+            Our insurance products
+          </p>
+          <p className="mt-6 text-lg/8 text-gray-600">
+            Choose the type of cover that suits your needs
           </p>
         </div>
 
         {products.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed py-16 text-center">
-            <p className="text-muted-foreground">
+          <div className="mx-auto mt-16 max-w-2xl rounded-xl border-2 border-dashed py-16 text-center">
+            <p className="text-gray-500">
               No products available at the moment. Check back soon!
             </p>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto mt-16 grid max-w-2xl gap-5 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
             {products.map((product) => {
               const Icon = ICON_MAP[product.icon] ?? Activity;
               return (
@@ -159,7 +482,7 @@ export default async function TenantLandingPage({
                           <h3 className="font-semibold text-base group-hover:underline underline-offset-2">
                             {product.label}
                           </h3>
-                          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                          <p className="mt-1 text-sm text-gray-600 leading-relaxed">
                             {product.description}
                           </p>
                           <div
@@ -180,37 +503,132 @@ export default async function TenantLandingPage({
         )}
       </section>
 
-      {/* Trust bar */}
-      <section className="border-t bg-gray-50/50 py-12">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
-            <div>
-              <p className="text-2xl font-bold" style={{ color: brand.primary_colour }}>
-                24/7
+      {/* About Section */}
+      {pc.about_text && (
+        <div className="bg-gray-50 py-24 sm:py-32">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl lg:text-center">
+              <h2
+                className="text-base/7 font-semibold"
+                style={{ color: brand.primary_colour }}
+              >
+                About us
+              </h2>
+              <p className="mt-2 text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+                Who we are
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">Claims support</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: brand.primary_colour }}>
-                5 min
+              <p className="mt-6 text-lg/8 text-gray-700 leading-relaxed">
+                {pc.about_text}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">Average quote time</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: brand.primary_colour }}>
-                FCA
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">Authorised & regulated</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: brand.primary_colour }}>
-                4.8★
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">Customer rating</p>
             </div>
           </div>
         </div>
-      </section>
+      )}
+
+      {/* Dynamic Sections — Tailwind Plus components */}
+      {enabledSections.map((section) => {
+        switch (section.type) {
+          case "testimonials":
+            return (
+              <TestimonialsSection
+                key={section.id}
+                section={section}
+                primaryColour={brand.primary_colour}
+              />
+            );
+          case "faq":
+            return <FaqSection key={section.id} section={section} />;
+          case "features":
+            return (
+              <FeaturesSection
+                key={section.id}
+                section={section}
+                primaryColour={brand.primary_colour}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
+
+      {/* CTA Band (Tailwind Plus: 04-simple-centered) */}
+      <div className="bg-white">
+        <div className="px-6 py-24 sm:py-32 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">
+              Ready to get covered?
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg/8 text-pretty text-gray-600">
+              Get a personalised quote in minutes. No hidden fees, no jargon —
+              just simple, transparent insurance you can count on.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <a
+                href="#products"
+                className="rounded-md px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 transition-all"
+                style={{
+                  backgroundColor: brand.primary_colour,
+                  outlineColor: brand.primary_colour,
+                }}
+              >
+                Get a quote
+              </a>
+              <a
+                href={`/portal/login?tenant=${slug}`}
+                className="text-sm/6 font-semibold text-gray-900"
+              >
+                Manage my policy <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats / Trust bar — inspired by Tailwind Plus stats sections */}
+      <div className="bg-white py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-4">
+            <div className="mx-auto flex max-w-xs flex-col gap-y-2">
+              <dt className="text-base/7 text-gray-600">Claims support</dt>
+              <dd
+                className="order-first text-3xl font-semibold tracking-tight sm:text-5xl"
+                style={{ color: brand.primary_colour }}
+              >
+                24/7
+              </dd>
+            </div>
+            <div className="mx-auto flex max-w-xs flex-col gap-y-2">
+              <dt className="text-base/7 text-gray-600">Average quote time</dt>
+              <dd
+                className="order-first text-3xl font-semibold tracking-tight sm:text-5xl"
+                style={{ color: brand.primary_colour }}
+              >
+                5 min
+              </dd>
+            </div>
+            <div className="mx-auto flex max-w-xs flex-col gap-y-2">
+              <dt className="text-base/7 text-gray-600">
+                Authorised &amp; regulated
+              </dt>
+              <dd
+                className="order-first text-3xl font-semibold tracking-tight sm:text-5xl"
+                style={{ color: brand.primary_colour }}
+              >
+                FCA
+              </dd>
+            </div>
+            <div className="mx-auto flex max-w-xs flex-col gap-y-2">
+              <dt className="text-base/7 text-gray-600">Customer rating</dt>
+              <dd
+                className="order-first text-3xl font-semibold tracking-tight sm:text-5xl"
+                style={{ color: brand.primary_colour }}
+              >
+                4.8★
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
     </div>
   );
 }

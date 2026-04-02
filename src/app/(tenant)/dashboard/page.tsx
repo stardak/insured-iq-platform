@@ -1,60 +1,49 @@
 import {
-  FileText,
-  Users,
-  DollarSign,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  Shield,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from "@heroicons/react/20/solid";
+import {
   Clock,
   Car,
   Home,
   Activity,
+  Shield,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BrandConfig } from "@/types/brand";
+import { PublicUrlCard } from "@/components/tenant/public-url-card";
 
 // ─── Demo data ──────────────────────────────────────────────
 
-const KPI_CARDS = [
+const KPI_STATS = [
   {
-    title: "Total Policies",
-    value: "156",
-    change: "+18%",
-    trend: "up" as const,
-    description: "from last month",
-    icon: FileText,
+    name: "Total Policies",
+    stat: "156",
+    previousStat: "132",
+    change: "18%",
+    changeType: "increase" as const,
   },
   {
-    title: "Active Customers",
-    value: "124",
-    change: "+12%",
-    trend: "up" as const,
-    description: "from last month",
-    icon: Users,
+    name: "Active Customers",
+    stat: "124",
+    previousStat: "111",
+    change: "12%",
+    changeType: "increase" as const,
   },
   {
-    title: "Monthly Revenue",
-    value: "£45,230",
-    change: "+23%",
-    trend: "up" as const,
-    description: "from last month",
-    icon: DollarSign,
+    name: "Monthly Revenue",
+    stat: "£45,230",
+    previousStat: "£36,770",
+    change: "23%",
+    changeType: "increase" as const,
   },
   {
-    title: "Conversion Rate",
-    value: "28.4%",
-    change: "+3.2pp",
-    trend: "up" as const,
-    description: "from last month",
-    icon: TrendingUp,
+    name: "Conversion Rate",
+    stat: "28.4%",
+    previousStat: "25.2%",
+    change: "3.2pp",
+    changeType: "increase" as const,
   },
 ];
 
@@ -104,11 +93,16 @@ const TOP_PRODUCTS = [
   { name: "Pet Insurance", policies: 10, revenue: "£850", share: 2.0 },
 ];
 
+function cn(...classes: (string | boolean | undefined | null)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
 // ─── Page ───────────────────────────────────────────────────
 
 export default async function DashboardOverviewPage() {
-  // Fetch company name from brand_config
+  // Fetch company name and slug from tenant
   let companyName = "your dashboard";
+  let tenantSlug: string | null = null;
   try {
     const supabase = await createClient();
     const {
@@ -126,13 +120,14 @@ export default async function DashboardOverviewPage() {
       if (profile?.tenant_id) {
         const { data: tenant } = await admin
           .from("tenants")
-          .select("name, brand_config")
+          .select("name, slug, brand_config")
           .eq("id", profile.tenant_id)
           .single();
 
         if (tenant) {
           const config = (tenant.brand_config ?? {}) as Partial<BrandConfig>;
           companyName = config.company_name || tenant.name || "your dashboard";
+          tenantSlug = tenant.slug ?? null;
         }
       }
     }
@@ -140,123 +135,153 @@ export default async function DashboardOverviewPage() {
     // Fallback silently
   }
 
+  const publicUrl = tenantSlug
+    ? `https://insured-iq-platform.vercel.app/${tenantSlug}`
+    : null;
+
   return (
     <div className="space-y-8">
-      {/* Page header */}
+      {/* ── Page header ────────────────────────────────── */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
           Welcome back, {companyName} 👋
         </h2>
-        <p className="text-muted-foreground">
+        <p className="mt-1 text-sm text-gray-500">
           Here&apos;s what&apos;s happening with your insurance business today.
         </p>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {KPI_CARDS.map((kpi) => {
-          const Icon = kpi.icon;
-          const TrendIcon =
-            kpi.trend === "up" ? ArrowUpRight : ArrowDownRight;
-          const trendColor =
-            kpi.trend === "up" ? "text-emerald-600" : "text-red-500";
-
-          return (
-            <Card key={kpi.title} className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {kpi.title}
-                </CardTitle>
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon className="size-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold tracking-tight">
-                  {kpi.value}
-                </div>
-                <div className="mt-1 flex items-center gap-1 text-xs">
-                  <TrendIcon className={`size-3 ${trendColor}`} />
-                  <span className={trendColor}>{kpi.change}</span>
-                  <span className="text-muted-foreground">
-                    {kpi.description}
+      {/* ── KPI Stats (Tailwind Plus: 05-with-shared-borders) ─ */}
+      <div>
+        <h3 className="text-base font-semibold text-gray-900">Last 30 days</h3>
+        <dl className="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm md:grid-cols-4 md:divide-x md:divide-y-0">
+          {KPI_STATS.map((item) => (
+            <div key={item.name} className="px-4 py-5 sm:p-6">
+              <dt className="text-base font-normal text-gray-900">
+                {item.name}
+              </dt>
+              <dd className="mt-1 flex items-baseline justify-between md:block lg:flex">
+                <div className="flex items-baseline text-2xl font-semibold text-indigo-600">
+                  {item.stat}
+                  <span className="ml-2 text-sm font-medium text-gray-500">
+                    from {item.previousStat}
                   </span>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+
+                <div
+                  className={cn(
+                    item.changeType === "increase"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800",
+                    "inline-flex items-baseline rounded-full px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0"
+                  )}
+                >
+                  {item.changeType === "increase" ? (
+                    <ArrowUpIcon
+                      aria-hidden="true"
+                      className="mr-0.5 -ml-1 size-5 shrink-0 self-center text-green-500"
+                    />
+                  ) : (
+                    <ArrowDownIcon
+                      aria-hidden="true"
+                      className="mr-0.5 -ml-1 size-5 shrink-0 self-center text-red-500"
+                    />
+                  )}
+                  <span className="sr-only">
+                    {item.changeType === "increase" ? "Increased" : "Decreased"}{" "}
+                    by{" "}
+                  </span>
+                  {item.change}
+                </div>
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
-      {/* Activity + Top Products */}
-      <div className="grid gap-4 lg:grid-cols-7">
+      {/* ── Public URL card ────────────────────────────── */}
+      {publicUrl && <PublicUrlCard url={publicUrl} />}
+
+      {/* ── Activity + Top Products ────────────────────── */}
+      <div className="grid gap-6 lg:grid-cols-7">
         {/* Recent Activity */}
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+        <div className="lg:col-span-4 overflow-hidden rounded-lg bg-white shadow-sm">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-base font-semibold text-gray-900">
+              Recent Activity
+            </h3>
+          </div>
+          <div className="border-t border-gray-200">
+            <ul role="list" className="divide-y divide-gray-200">
               {RECENT_ACTIVITY.map((item, i) => {
                 const Icon = item.icon;
                 return (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-4" />
+                  <li
+                    key={i}
+                    className="flex items-center gap-x-4 px-4 py-4 sm:px-6"
+                  >
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                      <Icon className="size-5" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium leading-none">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900">
                         {item.text}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-0.5 text-sm text-gray-500">
                         {item.customer}
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold">{item.amount}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {item.amount}
+                      </p>
+                      <p className="mt-0.5 flex items-center justify-end gap-1 text-xs text-gray-500">
                         <Clock className="size-3" />
                         {item.time}
                       </p>
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
-          </CardContent>
-        </Card>
+            </ul>
+          </div>
+        </div>
 
         {/* Top Products */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="text-base">Top Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+        <div className="lg:col-span-3 overflow-hidden rounded-lg bg-white shadow-sm">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-base font-semibold text-gray-900">
+              Top Products
+            </h3>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+            <div className="space-y-5">
               {TOP_PRODUCTS.map((product) => (
                 <div key={product.name} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{product.name}</span>
-                    <span className="text-muted-foreground">
+                    <span className="font-medium text-gray-900">
+                      {product.name}
+                    </span>
+                    <span className="text-gray-500">
                       {product.policies} policies
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
-                        className="h-full rounded-full bg-primary transition-all"
+                        className="h-full rounded-full bg-indigo-600 transition-all"
                         style={{ width: `${product.share}%` }}
                       />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground w-14 text-right">
+                    <span className="w-16 text-right text-xs font-medium text-gray-500">
                       {product.revenue}
                     </span>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

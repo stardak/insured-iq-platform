@@ -1,8 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { BrandConfig } from "@/types/brand";
-import { DEFAULT_BRAND_CONFIG } from "@/types/brand";
+import type { BrandConfig, PageConfig } from "@/types/brand";
+import { DEFAULT_BRAND_CONFIG, DEFAULT_PAGE_CONFIG } from "@/types/brand";
 
 // ─── Product types & metadata ────────────────────────────────
 
@@ -193,6 +193,7 @@ export interface TenantPublicData {
   brand: BrandConfig;
   products: PublicProduct[];
   tenantName: string;
+  pageConfig: PageConfig;
 }
 
 /**
@@ -251,11 +252,16 @@ export async function getTenantBySlug(slug: string): Promise<{
       };
     });
 
+  // Parse page_config from brand_config
+  const rawBrandConfig = (tenant.brand_config ?? {}) as Record<string, unknown>;
+  const pageConfig = (rawBrandConfig.page_config ?? DEFAULT_PAGE_CONFIG) as PageConfig;
+
   return {
     data: {
       brand,
       products: enabledProducts,
       tenantName: brand.company_name || tenant.name,
+      pageConfig,
     },
     error: null,
   };
