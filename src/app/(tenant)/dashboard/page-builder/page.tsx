@@ -44,6 +44,9 @@ import {
   HelpCircle,
   Sparkles,
   X,
+  Sun,
+  Moon,
+  ExternalLink,
 } from "lucide-react";
 
 // ─── Section Labels ──────────────────────────────────────────
@@ -397,12 +400,16 @@ export default function PageBuilderPage() {
   const [config, setConfig] = useState<PageConfig>(DEFAULT_PAGE_CONFIG);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [slug, setSlug] = useState<string | null>(null);
 
-  // Load existing config
+  // Load existing config + tenant slug
   useEffect(() => {
-    getPageConfig().then(({ data, error }) => {
+    getPageConfig().then(({ data, error, slug: tenantSlug }) => {
       if (data) {
         setConfig(data);
+      }
+      if (tenantSlug) {
+        setSlug(tenantSlug);
       }
       if (error) {
         setStatus({ type: "error", message: error });
@@ -524,6 +531,54 @@ export default function PageBuilderPage() {
 
         {/* ── Hero Tab ──────────────────────────────────── */}
         <TabsContent value="hero" className="space-y-4">
+          {/* Theme Toggle */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Page Theme</CardTitle>
+              <CardDescription>
+                Choose a light or dark background for your public page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateConfig({ theme: "light" })}
+                  className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
+                    config.theme === "light"
+                      ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-white ring-1 ring-gray-200">
+                    <Sun className="size-5 text-amber-500" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900">Light</p>
+                    <p className="text-xs text-gray-500">White background</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateConfig({ theme: "dark" })}
+                  className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
+                    config.theme === "dark"
+                      ? "border-indigo-600 ring-2 ring-indigo-600/20"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-gray-900">
+                    <Moon className="size-5 text-indigo-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900">Dark</p>
+                    <p className="text-xs text-gray-500">Slate background</p>
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Hero Section</CardTitle>
@@ -708,7 +763,7 @@ export default function PageBuilderPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Save button */}
+      {/* Save + Preview buttons */}
       <div className="flex items-center gap-3 pt-2">
         <Button onClick={handleSave} disabled={isPending || !isDirty}>
           {isPending ? (
@@ -720,6 +775,17 @@ export default function PageBuilderPage() {
             "Save Changes"
           )}
         </Button>
+        {slug && (
+          <Button
+            variant="outline"
+            onClick={() =>
+              window.open(`/${slug}`, "_blank")
+            }
+          >
+            <ExternalLink className="size-4" />
+            Preview public page
+          </Button>
+        )}
         {isDirty && (
           <span className="text-sm text-muted-foreground">
             Unsaved changes

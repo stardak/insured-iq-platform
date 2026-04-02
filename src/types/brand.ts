@@ -69,6 +69,7 @@ export interface PageSection {
 }
 
 export interface PageConfig {
+  theme: "light" | "dark";
   hero_headline: string;
   hero_subheadline: string;
   hero_image_url: string;
@@ -79,6 +80,7 @@ export interface PageConfig {
 }
 
 export const DEFAULT_PAGE_CONFIG: PageConfig = {
+  theme: "light",
   hero_headline: "",
   hero_subheadline: "",
   hero_image_url: "",

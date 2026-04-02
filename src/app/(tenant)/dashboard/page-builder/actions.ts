@@ -11,6 +11,7 @@ import { DEFAULT_PAGE_CONFIG } from "@/types/brand";
 export async function getPageConfig(): Promise<{
   data: PageConfig | null;
   error: string | null;
+  slug: string | null;
 }> {
   const supabase = await createClient();
   const {
@@ -18,7 +19,7 @@ export async function getPageConfig(): Promise<{
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { data: null, error: "Not authenticated" };
+    return { data: null, error: "Not authenticated", slug: null };
   }
 
   const admin = createAdminClient();
@@ -30,17 +31,17 @@ export async function getPageConfig(): Promise<{
     .single();
 
   if (!profile) {
-    return { data: null, error: "No profile found" };
+    return { data: null, error: "No profile found", slug: null };
   }
 
   const { data: tenant, error } = await admin
     .from("tenants")
-    .select("brand_config")
+    .select("brand_config, slug")
     .eq("id", profile.tenant_id)
     .single();
 
   if (error || !tenant) {
-    return { data: null, error: error?.message ?? "Tenant not found" };
+    return { data: null, error: error?.message ?? "Tenant not found", slug: null };
   }
 
   const brandConfig = (tenant.brand_config ?? {}) as Record<string, unknown>;
@@ -49,6 +50,7 @@ export async function getPageConfig(): Promise<{
   return {
     data: pageConfig ?? DEFAULT_PAGE_CONFIG,
     error: null,
+    slug: (tenant as Record<string, unknown>).slug as string | null,
   };
 }
 
