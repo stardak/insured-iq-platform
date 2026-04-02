@@ -10,6 +10,7 @@ import {
   TrophyIcon,
   ClipboardDocumentCheckIcon,
   UsersIcon,
+  UserGroupIcon,
   CogIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { name: "Leaderboard", href: "/super-admin/leaderboard", icon: TrophyIcon },
   { name: "Compliance", href: "/super-admin/compliance", icon: ClipboardDocumentCheckIcon },
   { name: "Users", href: "/super-admin/users", icon: UsersIcon },
+  { name: "Admins", href: "/super-admin/admins", icon: UserGroupIcon },
   { name: "System", href: "/super-admin/system", icon: CogIcon },
 ];
 

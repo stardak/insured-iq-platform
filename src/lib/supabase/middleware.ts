@@ -59,11 +59,17 @@ async function needsOnboarding(userId: string): Promise<boolean> {
 
   const { data: profile } = await admin
     .from("profiles")
-    .select("tenant_id, tenants(name)")
+    .select("tenant_id, role, tenants(name)")
     .eq("id", userId)
     .maybeSingle();
 
   if (!profile) return true;
+
+  // Super admins never need tenant onboarding
+  if (profile.role === "super_admin") return false;
+
+  // No tenant assigned yet
+  if (!profile.tenant_id) return true;
 
   const tenants = profile.tenants as { name: string }[] | null;
   return tenants?.[0]?.name === "Onboarding";
