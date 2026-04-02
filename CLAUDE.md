@@ -64,7 +64,7 @@ src/
 ## Core data models
 
 ### tenants
-id, name, slug, custom_domain, plan, status, brand_config (jsonb), created_at
+id, name, slug, custom_domain, plan, status, brand_config (jsonb), stripe_customer_id, stripe_subscription_id, stripe_plan_status, current_period_end, created_at
 
 ### profiles
 id (matches auth.users.id), tenant_id, role, first_name, last_name, email, created_at
@@ -96,9 +96,10 @@ Phase 1 ✅ — Completed:
 5. Product toggle page
 
 Phase 2 — In progress:
-1. Customer self-service portal shell (`/portal`)
-2. Portal login page (`/portal/login`) — separate from tenant auth
-3. Branded portal layout using tenant `brand_config` (zero Insured IQ branding)
-4. Policies list page with placeholder data
-
-Do not build payments, analytics, compliance, or AI features yet.
+1. Customer self-service portal shell (`/portal`) ✅
+2. Portal login page (`/portal/login`) — separate from tenant auth ✅
+3. Branded portal layout using tenant `brand_config` (zero Insured IQ branding) ✅
+4. Policies list page with placeholder data ✅
+5. Stripe SaaS billing — migration, webhook, checkout, billing page ✅
+6. Tenant billing management page (`/dashboard/billing`) ✅
+7. Analytics dashboard with KPIs and charts (`/dashboard/analytics`)

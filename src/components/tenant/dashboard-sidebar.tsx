@@ -5,9 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
+  BarChart3,
   Package,
   Palette,
   Users,
+  CreditCard,
   ShieldCheck,
   LogOut,
   ChevronsUpDown,
@@ -37,6 +39,11 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
   },
   {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
+  {
     title: "Products",
     href: "/dashboard/products",
     icon: Package,
@@ -50,6 +57,11 @@ const NAV_ITEMS = [
     title: "Team",
     href: "/dashboard/team",
     icon: Users,
+  },
+  {
+    title: "Billing",
+    href: "/dashboard/billing",
+    icon: CreditCard,
   },
 ];
 
