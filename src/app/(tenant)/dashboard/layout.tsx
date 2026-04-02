@@ -45,8 +45,8 @@ export default async function DashboardLayout({
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <DemoBanner />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+          {children}
         </main>
       </div>
     </div>
