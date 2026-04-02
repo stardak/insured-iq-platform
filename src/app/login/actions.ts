@@ -25,20 +25,14 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") || headerStore.get("host") || "";
+  const baseUrl = origin.startsWith("http") ? origin : `http://${origin}`;
 
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
-
-  if (password !== confirmPassword) {
-    redirect(`/login?tab=register&error=${encodeURIComponent("Passwords do not match")}`);
-  }
-
-  if (password.length < 6) {
-    redirect(`/login?tab=register&error=${encodeURIComponent("Password must be at least 6 characters")}`);
-  }
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -48,6 +42,7 @@ export async function signup(formData: FormData) {
         first_name: firstName,
         last_name: lastName,
       },
+      emailRedirectTo: `${baseUrl}/auth/callback`,
     },
   });
 
@@ -55,8 +50,8 @@ export async function signup(formData: FormData) {
     redirect(`/login?tab=register&error=${encodeURIComponent(error.message)}`);
   }
 
-  // After signup, redirect to onboarding to set up company
-  redirect("/onboarding");
+  // Show confirmation message — user needs to verify email first
+  redirect(`/login?tab=register&success=1&email=${encodeURIComponent(email)}`);
 }
 
 export async function loginWithGoogle() {

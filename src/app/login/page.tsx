@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { login, signup, loginWithGoogle } from "./actions";
 
 // ─── Google SVG icon ────────────────────────────────────────
@@ -62,9 +61,12 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const initialTab = searchParams.get("tab") === "register" ? "register" : "signin";
+  const signupSuccess = searchParams.get("success") === "1";
+  const confirmEmail = searchParams.get("email") ?? "";
 
   // We use a URL param approach rather than useState so the tab persists on redirect
   const activeTab = initialTab;
+  const [signupError, setSignupError] = useState("");
 
   function setTab(tab: string) {
     const url = new URL(window.location.href);
@@ -161,17 +163,40 @@ function AuthForm() {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs or Success Message */}
           <div className="lg:mt-0 mt-8">
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-              <TabButton active={activeTab === "signin"} onClick={() => setTab("signin")}>
-                Sign in
-              </TabButton>
-              <TabButton active={activeTab === "register"} onClick={() => setTab("register")}>
-                Create account
-              </TabButton>
-            </div>
-          </div>
+            {signupSuccess ? (
+              <div className="text-center py-8">
+                <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 mb-6">
+                  <svg className="size-8 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Check your inbox</h2>
+                <p className="mt-3 text-sm text-gray-600">
+                  We&apos;ve sent a confirmation link to
+                </p>
+                <p className="mt-1 text-sm font-semibold text-gray-900">{confirmEmail}</p>
+                <p className="mt-4 text-sm text-gray-500">
+                  Click the link in the email to verify your account, then come back here to sign in.
+                </p>
+                <button
+                  onClick={() => setTab("signin")}
+                  className="mt-8 inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 transition-colors"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+                  <TabButton active={activeTab === "signin"} onClick={() => setTab("signin")}>
+                    Sign in
+                  </TabButton>
+                  <TabButton active={activeTab === "register"} onClick={() => setTab("register")}>
+                    Create account
+                  </TabButton>
+                </div>
 
           <div className="mt-6">
             {/* Error message */}
@@ -237,7 +262,31 @@ function AuthForm() {
             ) : (
               <>
                 {/* Create Account Form */}
-                <form action={signup} className="space-y-4">
+                {signupError && (
+                  <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200 ring-inset">
+                    {signupError}
+                  </div>
+                )}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const fd = new FormData(form);
+                    const pw = fd.get("password") as string;
+                    const cpw = fd.get("confirmPassword") as string;
+                    if (pw.length < 6) {
+                      setSignupError("Password must be at least 6 characters");
+                      return;
+                    }
+                    if (pw !== cpw) {
+                      setSignupError("Passwords do not match");
+                      return;
+                    }
+                    setSignupError("");
+                    signup(fd);
+                  }}
+                  className="space-y-4"
+                >
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="firstName" className="block text-sm/6 font-medium text-gray-900">
@@ -367,6 +416,9 @@ function AuthForm() {
                 </form>
               </div>
             </div>
+          </div>
+              </>
+            )}
           </div>
         </div>
       </div>
