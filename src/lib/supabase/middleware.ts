@@ -7,6 +7,9 @@ const PUBLIC_PATHS = ["/login", "/auth", "/portal/login"];
 
 /** Check if a path is a public tenant page (e.g. /acme, /acme/car) */
 function isPublicTenantPath(pathname: string): boolean {
+  // Exclude known app route prefixes
+  const appPrefixes = ["/super-admin", "/dashboard", "/portal", "/onboarding", "/api", "/login", "/auth", "/preview"];
+  if (appPrefixes.some((p) => pathname.startsWith(p))) return false;
   // Match /{slug} or /{slug}/{product} — slug is lowercase alphanumeric + hyphens
   return /^\/[a-z0-9][a-z0-9-]*\/?([a-z]+)?$/.test(pathname);
 }
