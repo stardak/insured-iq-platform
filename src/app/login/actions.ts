@@ -25,33 +25,42 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
-  const headerStore = await headers();
-  const origin = headerStore.get("origin") || headerStore.get("host") || "";
-  const baseUrl = origin.startsWith("http") ? origin : `http://${origin}`;
 
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const { error } = await supabase.auth.signUp({
+  // Use admin API to create user with auto-confirm (bypasses email rate limits)
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+
+  const { data: userData, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-      },
-      emailRedirectTo: `${baseUrl}/auth/callback`,
+    email_confirm: true,
+    user_metadata: {
+      first_name: firstName,
+      last_name: lastName,
     },
   });
 
-  if (error) {
-    redirect(`/login?tab=register&error=${encodeURIComponent(error.message)}`);
+  if (createError) {
+    redirect(`/login?tab=register&error=${encodeURIComponent(createError.message)}`);
   }
 
-  // Show confirmation message — user needs to verify email first
-  redirect(`/login?tab=register&success=1&email=${encodeURIComponent(email)}`);
+  // Sign the user in immediately
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    redirect(`/login?tab=register&error=${encodeURIComponent(signInError.message)}`);
+  }
+
+  // Head straight to onboarding
+  redirect("/onboarding");
 }
 
 export async function loginWithGoogle() {
