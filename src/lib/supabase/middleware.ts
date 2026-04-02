@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Routes that don't require authentication */
-const PUBLIC_PATHS = ["/login", "/auth", "/portal/login"];
+const PUBLIC_PATHS = ["/login", "/register", "/auth", "/portal/login"];
 
 /** Check if a path is a public tenant page (e.g. /acme, /acme/car) */
 function isPublicTenantPath(pathname: string): boolean {

@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { login, loginWithGoogle } from "./actions";
+import { login, signup, loginWithGoogle } from "./actions";
 
 // ─── Google SVG icon ────────────────────────────────────────
 
@@ -29,23 +30,60 @@ function GoogleIcon() {
   );
 }
 
-// ─── Login Form (Tailwind Plus: 04-split-screen) ────────────
+// ─── Tab Button ─────────────────────────────────────────────
 
-function LoginForm() {
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+        active
+          ? "bg-indigo-600 text-white shadow-sm"
+          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─── Auth Form ──────────────────────────────────────────────
+
+function AuthForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const initialTab = searchParams.get("tab") === "register" ? "register" : "signin";
+
+  // We use a URL param approach rather than useState so the tab persists on redirect
+  const activeTab = initialTab;
+
+  function setTab(tab: string) {
+    const url = new URL(window.location.href);
+    if (tab === "register") {
+      url.searchParams.set("tab", "register");
+    } else {
+      url.searchParams.delete("tab");
+    }
+    url.searchParams.delete("error");
+    window.history.replaceState({}, "", url.toString());
+    window.location.href = url.toString();
+  }
 
   return (
     <div className="flex min-h-screen">
       {/* Left panel — branded */}
       <div className="relative hidden w-0 flex-1 lg:block">
-        {/* Solid indigo base background */}
-        <div className="absolute inset-0 bg-indigo-600" />
-
-        {/* Gradient overlay for premium feel */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800" />
 
-        {/* Decorative gradient blob */}
         <svg
           viewBox="0 0 1024 1024"
           aria-hidden="true"
@@ -66,7 +104,6 @@ function LoginForm() {
           </defs>
         </svg>
 
-        {/* Content on branded panel */}
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
           <div>
             <div className="flex items-center gap-x-3">
@@ -81,10 +118,10 @@ function LoginForm() {
 
           <div className="max-w-md">
             <h1 className="text-4xl font-semibold tracking-tight text-white">
-              The smarter way to manage insurance
+              Start your free trial
             </h1>
             <p className="mt-4 text-lg text-indigo-100">
-              Launch your own branded insurance company in minutes. White-label
+              Set up your branded insurance company in minutes. White-label
               products, automated underwriting, and beautiful customer
               experiences — all powered by Insured IQ.
             </p>
@@ -109,10 +146,10 @@ function LoginForm() {
         </div>
       </div>
 
-      {/* Right panel — sign-in form */}
+      {/* Right panel — form */}
       <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-sm lg:w-96">
-          {/* Mobile logo (hidden on desktop where left panel shows) */}
+          {/* Mobile logo */}
           <div className="lg:hidden">
             <div className="flex items-center gap-x-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold">
@@ -124,16 +161,19 @@ function LoginForm() {
             </div>
           </div>
 
+          {/* Tabs */}
           <div className="lg:mt-0 mt-8">
-            <h2 className="text-2xl/9 font-bold tracking-tight text-gray-900">
-              Sign in to your account
-            </h2>
-            <p className="mt-2 text-sm/6 text-gray-500">
-              Manage your insurance business from one dashboard.
-            </p>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+              <TabButton active={activeTab === "signin"} onClick={() => setTab("signin")}>
+                Sign in
+              </TabButton>
+              <TabButton active={activeTab === "register"} onClick={() => setTab("register")}>
+                Create account
+              </TabButton>
+            </div>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-6">
             {/* Error message */}
             {error && (
               <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200 ring-inset">
@@ -141,65 +181,170 @@ function LoginForm() {
               </div>
             )}
 
-            {/* Email / Password form */}
-            <form action={login} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm/6 font-medium text-gray-900"
-                >
-                  Email address
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="you@company.com"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  />
-                </div>
-              </div>
+            {activeTab === "signin" ? (
+              <>
+                {/* Sign In Form */}
+                <form action={login} className="space-y-5">
+                  <div>
+                    <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+                      Email address
+                    </label>
+                    <div className="mt-1.5">
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        placeholder="you@company.com"
+                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm/6 font-medium text-gray-900"
-                >
-                  Password
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
+                      Password
+                    </label>
+                    <div className="mt-1.5">
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <button
-                  type="submit"
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  Sign in
-                </button>
-              </div>
-            </form>
+                  <button
+                    type="submit"
+                    className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    Sign in
+                  </button>
+                </form>
+
+                <p className="mt-4 text-center text-sm text-gray-500">
+                  Don&apos;t have an account?{" "}
+                  <button onClick={() => setTab("register")} className="font-semibold text-indigo-600 hover:text-indigo-500">
+                    Create one
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                {/* Create Account Form */}
+                <form action={signup} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="firstName" className="block text-sm/6 font-medium text-gray-900">
+                        First name
+                      </label>
+                      <div className="mt-1.5">
+                        <input
+                          id="firstName"
+                          name="firstName"
+                          type="text"
+                          required
+                          autoComplete="given-name"
+                          placeholder="John"
+                          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="lastName" className="block text-sm/6 font-medium text-gray-900">
+                        Last name
+                      </label>
+                      <div className="mt-1.5">
+                        <input
+                          id="lastName"
+                          name="lastName"
+                          type="text"
+                          required
+                          autoComplete="family-name"
+                          placeholder="Smith"
+                          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="signupEmail" className="block text-sm/6 font-medium text-gray-900">
+                      Email address
+                    </label>
+                    <div className="mt-1.5">
+                      <input
+                        id="signupEmail"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        placeholder="you@company.com"
+                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="signupPassword" className="block text-sm/6 font-medium text-gray-900">
+                      Password
+                    </label>
+                    <div className="mt-1.5">
+                      <input
+                        id="signupPassword"
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete="new-password"
+                        placeholder="Min. 6 characters"
+                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm/6 font-medium text-gray-900">
+                      Confirm password
+                    </label>
+                    <div className="mt-1.5">
+                      <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        required
+                        autoComplete="new-password"
+                        placeholder="••••••••"
+                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    Create account
+                  </button>
+                </form>
+
+                <p className="mt-4 text-center text-sm text-gray-500">
+                  Already have an account?{" "}
+                  <button onClick={() => setTab("signin")} className="font-semibold text-indigo-600 hover:text-indigo-500">
+                    Sign in
+                  </button>
+                </p>
+              </>
+            )}
 
             {/* Divider */}
-            <div className="mt-10">
+            <div className="mt-8">
               <div className="relative">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 flex items-center"
-                >
+                <div aria-hidden="true" className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm/6 font-medium">
@@ -234,7 +379,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense>
-      <LoginForm />
+      <AuthForm />
     </Suspense>
   );
 }

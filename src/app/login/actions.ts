@@ -19,8 +19,44 @@ export async function login(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  // Middleware will redirect to the correct area based on role
-  redirect("/dashboard");
+  // Redirect to / — middleware will route based on role
+  redirect("/");
+}
+
+export async function signup(formData: FormData) {
+  const supabase = await createClient();
+
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (password !== confirmPassword) {
+    redirect(`/login?tab=register&error=${encodeURIComponent("Passwords do not match")}`);
+  }
+
+  if (password.length < 6) {
+    redirect(`/login?tab=register&error=${encodeURIComponent("Password must be at least 6 characters")}`);
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+      },
+    },
+  });
+
+  if (error) {
+    redirect(`/login?tab=register&error=${encodeURIComponent(error.message)}`);
+  }
+
+  // After signup, redirect to onboarding to set up company
+  redirect("/onboarding");
 }
 
 export async function loginWithGoogle() {
