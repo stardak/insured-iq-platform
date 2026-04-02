@@ -516,21 +516,21 @@ export default async function TenantLandingPage({
             className="text-base/7 font-semibold"
             style={{ color: brand.primary_colour }}
           >
-            Products
+            {pc.products_label || "Products"}
           </h2>
           <p
             className={`mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl ${
               dark ? "text-white" : "text-gray-900"
             }`}
           >
-            Our insurance products
+            {pc.products_heading || "Our insurance products"}
           </p>
           <p
             className={`mt-6 text-lg/8 ${
               dark ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Choose the type of cover that suits your needs
+            {pc.products_description || "Choose the type of cover that suits your needs"}
           </p>
         </div>
 
@@ -545,63 +545,143 @@ export default async function TenantLandingPage({
             <p>No products available at the moment. Check back soon!</p>
           </div>
         ) : (
-          <div className="mx-auto mt-16 grid max-w-2xl gap-5 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-            {products.map((product) => {
+          (() => {
+            const count = products.length;
+
+            // Grid class based on product count
+            const gridClass =
+              count === 1
+                ? "flex justify-center"
+                : count === 2
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-5"
+                : count === 3
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+                : count === 4
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-5"
+                : count === 5
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+
+            // Single product — hero-style feature card
+            if (count === 1) {
+              const product = products[0];
               const Icon = ICON_MAP[product.icon] ?? Activity;
               return (
-                <Link key={product.type} href={`/${slug}/${product.type}`}>
-                  <Card
-                    className={`group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer h-full ${
-                      dark
-                        ? "bg-slate-800 border-slate-700 hover:border-slate-600"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className="absolute inset-x-0 top-0 h-1 transition-transform origin-left scale-x-0 group-hover:scale-x-100"
-                      style={{ backgroundColor: brand.primary_colour }}
-                    />
-                    <CardContent className="pt-6 pb-6">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className="flex size-12 shrink-0 items-center justify-center rounded-xl"
-                          style={{
-                            backgroundColor: `${brand.primary_colour}${dark ? "30" : "10"}`,
-                            color: brand.primary_colour,
-                          }}
-                        >
-                          <Icon className="size-6" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3
-                            className={`font-semibold text-base group-hover:underline underline-offset-2 ${
-                              dark ? "text-white" : ""
-                            }`}
-                          >
-                            {product.label}
-                          </h3>
-                          <p
-                            className={`mt-1 text-sm leading-relaxed ${
-                              dark ? "text-gray-400" : "text-gray-600"
-                            }`}
-                          >
-                            {product.description}
-                          </p>
+                <div className="mx-auto mt-16 flex justify-center sm:mt-20">
+                  <Link href={`/${slug}/${product.type}`} className="w-full max-w-2xl">
+                    <Card
+                      className={`group relative overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer ${
+                        dark
+                          ? "bg-slate-800 border-slate-700 hover:border-slate-600"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div
+                        className="absolute inset-x-0 top-0 h-1.5 transition-transform origin-left scale-x-0 group-hover:scale-x-100"
+                        style={{ backgroundColor: brand.primary_colour }}
+                      />
+                      <CardContent className="p-8 sm:p-10">
+                        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
                           <div
-                            className="mt-3 flex items-center gap-1 text-sm font-medium"
-                            style={{ color: brand.primary_colour }}
+                            className="flex size-20 shrink-0 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor: `${brand.primary_colour}${dark ? "30" : "10"}`,
+                              color: brand.primary_colour,
+                            }}
                           >
-                            Learn more
-                            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                            <Icon className="size-10" />
+                          </div>
+                          <div className="flex-1 min-w-0 text-center sm:text-left">
+                            <h3
+                              className={`font-bold text-2xl group-hover:underline underline-offset-4 ${
+                                dark ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {product.label}
+                            </h3>
+                            <p
+                              className={`mt-2 text-base leading-relaxed ${
+                                dark ? "text-gray-400" : "text-gray-600"
+                              }`}
+                            >
+                              {product.description}
+                            </p>
+                            <div
+                              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold"
+                              style={{ color: brand.primary_colour }}
+                            >
+                              Get a quote
+                              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <div className={`mx-auto mt-16 sm:mt-20 ${gridClass} max-w-5xl`}>
+                {products.map((product) => {
+                  const Icon = ICON_MAP[product.icon] ?? Activity;
+                  return (
+                    <Link key={product.type} href={`/${slug}/${product.type}`}>
+                      <Card
+                        className={`group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer h-full ${
+                          dark
+                            ? "bg-slate-800 border-slate-700 hover:border-slate-600"
+                            : ""
+                        }`}
+                      >
+                        <div
+                          className="absolute inset-x-0 top-0 h-1 transition-transform origin-left scale-x-0 group-hover:scale-x-100"
+                          style={{ backgroundColor: brand.primary_colour }}
+                        />
+                        <CardContent className="pt-6 pb-6">
+                          <div className="flex items-start gap-4">
+                            <div
+                              className="flex size-12 shrink-0 items-center justify-center rounded-xl"
+                              style={{
+                                backgroundColor: `${brand.primary_colour}${dark ? "30" : "10"}`,
+                                color: brand.primary_colour,
+                              }}
+                            >
+                              <Icon className="size-6" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3
+                                className={`font-semibold text-base group-hover:underline underline-offset-2 ${
+                                  dark ? "text-white" : ""
+                                }`}
+                              >
+                                {product.label}
+                              </h3>
+                              <p
+                                className={`mt-1 text-sm leading-relaxed ${
+                                  dark ? "text-gray-400" : "text-gray-600"
+                                }`}
+                              >
+                                {product.description}
+                              </p>
+                              <div
+                                className="mt-3 flex items-center gap-1 text-sm font-medium"
+                                style={{ color: brand.primary_colour }}
+                              >
+                                Learn more
+                                <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </section>
 

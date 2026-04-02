@@ -874,6 +874,51 @@ export default function PageBuilderPage() {
 
             {/* ── About Tab ──────────────────────────── */}
             <TabsContent value="about" className="space-y-4">
+              {/* Products Section text */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Products Section</CardTitle>
+                  <CardDescription className="text-xs">
+                    Customise the heading above your product cards.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="products_label" className="text-xs">Label</Label>
+                    <Input
+                      id="products_label"
+                      placeholder="Products"
+                      value={config.products_label}
+                      onChange={(e) =>
+                        updateConfig({ products_label: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="products_heading" className="text-xs">Heading</Label>
+                    <Input
+                      id="products_heading"
+                      placeholder="Our insurance products"
+                      value={config.products_heading}
+                      onChange={(e) =>
+                        updateConfig({ products_heading: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="products_description" className="text-xs">Description</Label>
+                    <Input
+                      id="products_description"
+                      placeholder="Choose the type of cover that suits your needs"
+                      value={config.products_description}
+                      onChange={(e) =>
+                        updateConfig({ products_description: e.target.value })
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">About Section</CardTitle>

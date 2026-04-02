@@ -243,20 +243,60 @@ function FeaturesSection({ section, primaryColour, dark }: { section: PageSectio
 
 // ─── Products ────────────────────────────────────────────────
 
-function ProductsGrid({ products, brand, dark, slug }: { products: PreviewProduct[]; brand: BrandConfig; dark: boolean; slug: string }) {
+function ProductsGrid({ products, brand, dark, slug, pc }: { products: PreviewProduct[]; brand: BrandConfig; dark: boolean; slug: string; pc: PageConfig }) {
+  const count = products.length;
+  const gridClass =
+    count === 1
+      ? "flex justify-center"
+      : count === 2
+      ? "grid grid-cols-1 sm:grid-cols-2 gap-5"
+      : count === 3
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+      : count === 4
+      ? "grid grid-cols-1 sm:grid-cols-2 gap-5"
+      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+
   return (
     <section id="products" className="mx-auto max-w-7xl px-6 py-24 sm:py-32 scroll-mt-8 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-base/7 font-semibold" style={{ color: brand.primary_colour }}>Products</h2>
-        <p className={`mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl ${dark ? "text-white" : "text-gray-900"}`}>Our insurance products</p>
-        <p className={`mt-6 text-lg/8 ${dark ? "text-gray-400" : "text-gray-600"}`}>Choose the type of cover that suits your needs</p>
+        <h2 className="text-base/7 font-semibold" style={{ color: brand.primary_colour }}>{pc.products_label || "Products"}</h2>
+        <p className={`mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl ${dark ? "text-white" : "text-gray-900"}`}>{pc.products_heading || "Our insurance products"}</p>
+        <p className={`mt-6 text-lg/8 ${dark ? "text-gray-400" : "text-gray-600"}`}>{pc.products_description || "Choose the type of cover that suits your needs"}</p>
       </div>
       {products.length === 0 ? (
         <div className={`mx-auto mt-16 max-w-2xl rounded-xl border-2 border-dashed py-16 text-center ${dark ? "border-slate-700 text-gray-400" : "border-gray-300 text-gray-500"}`}>
           <p>No products available at the moment. Check back soon!</p>
         </div>
+      ) : count === 1 ? (
+        (() => {
+          const product = products[0];
+          const Icon = ICON_MAP[product.icon] ?? Activity;
+          return (
+            <div className="mx-auto mt-16 flex justify-center sm:mt-20">
+              <div className="w-full max-w-2xl">
+                <div className={`group relative overflow-hidden rounded-xl border transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+                  <div className="absolute inset-x-0 top-0 h-1.5 transition-transform origin-left scale-x-0 group-hover:scale-x-100" style={{ backgroundColor: brand.primary_colour }} />
+                  <div className="p-8 sm:p-10">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                      <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl" style={{ backgroundColor: `${brand.primary_colour}${dark ? "30" : "10"}`, color: brand.primary_colour }}>
+                        <Icon className="size-10" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-center sm:text-left">
+                        <h3 className={`font-bold text-2xl ${dark ? "text-white" : "text-gray-900"}`}>{product.label}</h3>
+                        <p className={`mt-2 text-base leading-relaxed ${dark ? "text-gray-400" : "text-gray-600"}`}>{product.description}</p>
+                        <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: brand.primary_colour }}>
+                          Get a quote <ArrowRight className="size-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()
       ) : (
-        <div className="mx-auto mt-16 grid max-w-2xl gap-5 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+        <div className={`mx-auto mt-16 sm:mt-20 ${gridClass} max-w-5xl`}>
           {products.map((product) => {
             const Icon = ICON_MAP[product.icon] ?? Activity;
             return (
@@ -363,7 +403,7 @@ export default function PreviewClient({
   return (
     <div className={dark ? "bg-slate-900" : "bg-white"}>
       <HeroSection pc={pc} brand={brand} slug={slug} tenantName={tenantName} />
-      <ProductsGrid products={products} brand={brand} dark={dark} slug={slug} />
+      <ProductsGrid products={products} brand={brand} dark={dark} slug={slug} pc={pc} />
 
       {pc.about_text && (
         <div className={`py-24 sm:py-32 ${dark ? "bg-slate-800/50" : "bg-gray-50"}`}>

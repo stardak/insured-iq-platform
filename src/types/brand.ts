@@ -76,6 +76,9 @@ export interface PageConfig {
   hero_bg_video_url: string;
   hero_cta_primary_text: string;
   hero_cta_secondary_text: string;
+  products_label: string;
+  products_heading: string;
+  products_description: string;
   about_text: string;
   sections: PageSection[];
 }
@@ -88,6 +91,9 @@ export const DEFAULT_PAGE_CONFIG: PageConfig = {
   hero_bg_video_url: "",
   hero_cta_primary_text: "View our products",
   hero_cta_secondary_text: "Manage my policy",
+  products_label: "",
+  products_heading: "",
+  products_description: "",
   about_text: "",
   sections: [
     {
