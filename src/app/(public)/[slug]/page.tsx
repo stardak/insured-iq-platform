@@ -62,25 +62,62 @@ export default async function TenantLandingPage({
     <div>
       {/* Hero */}
       <section
-        className="relative overflow-hidden py-20 sm:py-28"
+        className="relative overflow-hidden py-24 sm:py-32"
         style={{
-          background: `linear-gradient(135deg, ${brand.primary_colour}08 0%, ${brand.secondary_colour}08 100%)`,
+          background: `linear-gradient(135deg, ${brand.primary_colour}0A 0%, ${brand.secondary_colour}0A 50%, ${brand.primary_colour}05 100%)`,
         }}
       >
-        <div className="mx-auto max-w-6xl px-6 text-center">
+        {/* Decorative circles */}
+        <div
+          className="absolute -top-24 -right-24 size-96 rounded-full opacity-[0.04]"
+          style={{ backgroundColor: brand.primary_colour }}
+        />
+        <div
+          className="absolute -bottom-32 -left-32 size-[500px] rounded-full opacity-[0.03]"
+          style={{ backgroundColor: brand.secondary_colour }}
+        />
+
+        <div className="relative mx-auto max-w-6xl px-6 text-center">
+          {/* Badge */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium text-muted-foreground bg-white/80 backdrop-blur">
+            <span
+              className="size-2 rounded-full animate-pulse"
+              style={{ backgroundColor: brand.secondary_colour }}
+            />
+            Trusted by thousands of customers
+          </div>
+
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             Insurance made{" "}
             <span style={{ color: brand.primary_colour }}>simple</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            Get covered in minutes with {tenantName}. Choose from our range
-            of insurance products and get a quote tailored to your needs.
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground leading-relaxed">
+            Get covered in minutes with {tenantName}. Choose from our range of
+            insurance products and get a personalised quote tailored to your needs.
           </p>
+
+          {/* CTA */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="#products"
+              className="inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]"
+              style={{ backgroundColor: brand.primary_colour }}
+            >
+              View our products
+              <ArrowRight className="size-4" />
+            </a>
+            <a
+              href={`/portal/login?tenant=${slug}`}
+              className="inline-flex items-center gap-2 rounded-xl border px-8 py-3.5 text-base font-semibold transition-colors hover:bg-gray-50"
+            >
+              Manage my policy
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Products Grid */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section id="products" className="mx-auto max-w-6xl px-6 py-16 scroll-mt-8">
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Our Products

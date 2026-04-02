@@ -33,37 +33,46 @@ import {
 
 // ─── Mock data ───────────────────────────────────────────────
 
+// Seeded random for consistent results across renders
+function seededRandom(seed: number) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 function generateDailyPolicies(days: number) {
   const data = [];
   const today = new Date();
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const base = 8 + Math.floor(Math.random() * 12);
-    const weekend = date.getDay() === 0 || date.getDay() === 6 ? -3 : 0;
+    const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    const rand = seededRandom(seed);
+    const base = 3 + Math.floor(rand * 5);
+    const weekend = date.getDay() === 0 || date.getDay() === 6 ? -1 : 0;
+    const trend = Math.floor((days - i) / 10); // gentle upward trend
     data.push({
       date: date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
-      policies: Math.max(2, base + weekend + Math.floor(Math.random() * 5)),
+      policies: Math.max(1, base + weekend + trend),
     });
   }
   return data;
 }
 
 const REVENUE_BY_PRODUCT = [
-  { product: "Car", revenue: 28450, fill: "#6366f1" },
-  { product: "Pet", revenue: 12300, fill: "#8b5cf6" },
-  { product: "Life", revenue: 45200, fill: "#a78bfa" },
-  { product: "Bike", revenue: 5800, fill: "#c4b5fd" },
-  { product: "Home", revenue: 34100, fill: "#818cf8" },
-  { product: "Health", revenue: 22750, fill: "#7c3aed" },
+  { product: "Car", revenue: 18200, fill: "#6366f1" },
+  { product: "Pet", revenue: 850, fill: "#8b5cf6" },
+  { product: "Life", revenue: 2850, fill: "#a78bfa" },
+  { product: "Bike", revenue: 0, fill: "#c4b5fd" },
+  { product: "Home", revenue: 14900, fill: "#818cf8" },
+  { product: "Health", revenue: 8430, fill: "#7c3aed" },
 ];
 
 const KPI_DATA = {
-  totalPolicies: { value: 1247, change: 12.3, up: true },
-  activePolicies: { value: 1089, change: 8.7, up: true },
-  monthlyRevenue: { value: 148600, change: 15.2, up: true },
-  conversionRate: { value: 34.8, change: 2.1, up: true },
-  refundRate: { value: 1.2, change: -0.3, up: false },
+  totalPolicies: { value: 156, change: 18, up: true },
+  activePolicies: { value: 134, change: 14.2, up: true },
+  monthlyRevenue: { value: 45230, change: 23, up: true },
+  conversionRate: { value: 28.4, change: 3.2, up: true },
+  refundRate: { value: 1.8, change: -0.4, up: false },
 };
 
 // ─── Components ──────────────────────────────────────────────
@@ -183,7 +192,7 @@ export function AnalyticsDashboard() {
         />
         <KpiCard
           title="Monthly Revenue"
-          value={`£${(KPI_DATA.monthlyRevenue.value / 100).toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
+          value={`£${KPI_DATA.monthlyRevenue.value.toLocaleString()}`}
           change={KPI_DATA.monthlyRevenue.change}
           up={KPI_DATA.monthlyRevenue.up}
           icon={<DollarSign className="size-5" />}
