@@ -30,6 +30,7 @@ import type {
   FeatureItem,
 } from "@/types/brand";
 import FaqDisclosure from "./faq-disclosure";
+import HeroVideo from "./hero-video";
 
 // ─── Icon map ────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ function HeroSection({
   ctaPrimary,
   ctaSecondary,
   heroImage,
+  heroVideoUrl,
   primaryColour,
   secondaryColour,
   slug,
@@ -87,14 +89,16 @@ function HeroSection({
   ctaPrimary: string;
   ctaSecondary: string;
   heroImage: string | null;
+  heroVideoUrl: string | null;
   primaryColour: string;
   secondaryColour: string;
   slug: string;
   dark: boolean;
 }) {
   const hasBgImage = !!heroImage;
-  // Text colors: dark mode or hero-image both use light text
-  const lightText = dark || hasBgImage;
+  const hasBgVideo = !!heroVideoUrl;
+  // Text colors: dark mode, hero-image, or hero-video all use light text
+  const lightText = dark || hasBgImage || hasBgVideo;
 
   return (
     <div
@@ -102,8 +106,13 @@ function HeroSection({
         dark ? "bg-slate-900" : "bg-white"
       }`}
     >
-      {/* Background image or subtle gradient */}
-      {hasBgImage ? (
+      {/* Background video */}
+      {hasBgVideo ? (
+        <>
+          <HeroVideo src={heroVideoUrl} />
+          <div className="absolute inset-0 -z-10 bg-black/60" />
+        </>
+      ) : hasBgImage ? (
         <>
           <img
             alt=""
@@ -474,6 +483,7 @@ export default async function TenantLandingPage({
   const ctaPrimary = pc.hero_cta_primary_text || "View our products";
   const ctaSecondary = pc.hero_cta_secondary_text || "Manage my policy";
   const heroImage = pc.hero_image_url || null;
+  const heroVideoUrl = pc.hero_bg_video_url || null;
 
   // Sort enabled sections by order
   const enabledSections = (pc.sections ?? [])
@@ -489,6 +499,7 @@ export default async function TenantLandingPage({
         ctaPrimary={ctaPrimary}
         ctaSecondary={ctaSecondary}
         heroImage={heroImage}
+        heroVideoUrl={heroVideoUrl}
         primaryColour={brand.primary_colour}
         secondaryColour={brand.secondary_colour}
         slug={slug}

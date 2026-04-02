@@ -73,6 +73,7 @@ export interface PageConfig {
   hero_headline: string;
   hero_subheadline: string;
   hero_image_url: string;
+  hero_bg_video_url: string;
   hero_cta_primary_text: string;
   hero_cta_secondary_text: string;
   about_text: string;
@@ -84,6 +85,7 @@ export const DEFAULT_PAGE_CONFIG: PageConfig = {
   hero_headline: "",
   hero_subheadline: "",
   hero_image_url: "",
+  hero_bg_video_url: "",
   hero_cta_primary_text: "View our products",
   hero_cta_secondary_text: "Manage my policy",
   about_text: "",
