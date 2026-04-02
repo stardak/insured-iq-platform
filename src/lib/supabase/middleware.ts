@@ -163,6 +163,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // ── Allow authenticated users to view public tenant pages ───
+  if (isPublicTenantPath(pathname)) {
+    return supabaseResponse;
+  }
+
   // ── Onboarding check for protected routes (skip portal) ────
   if (!isPublicPath(pathname) && !isOnboardingPath(pathname) && !isPortalPath(pathname)) {
     const onboarding = await needsOnboarding(user.id);
