@@ -2,41 +2,34 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Known platform hostnames that are NOT tenant subdomains.
- * Add any staging/preview domains here.
+ * The production domain where tenant subdomains are expected.
+ * e.g. acme.insurediq.com → slug "acme"
  */
-const PLATFORM_HOSTS = [
-  "localhost",
-  "127.0.0.1",
-  "insurediq.com",
-  "www.insurediq.com",
-];
+const TENANT_DOMAIN = "insurediq.com";
 
 /**
  * Extract a tenant slug from the subdomain if applicable.
- * Example: acme.insurediq.com → "acme"
- * Returns null for platform hosts (localhost, www, etc.)
+ * Only matches: {slug}.insurediq.com
+ * Returns null for everything else (Vercel previews, localhost, etc.)
  */
 function extractSubdomainSlug(hostname: string): string | null {
   // Strip port number
   const host = hostname.split(":")[0];
 
-  // Skip known platform hosts
-  if (PLATFORM_HOSTS.some((ph) => host === ph || host === `www.${ph}`)) {
+  // Only detect subdomains on the production tenant domain
+  if (!host.endsWith(`.${TENANT_DOMAIN}`)) {
     return null;
   }
 
-  // Check for subdomain pattern: {slug}.insurediq.com
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const slug = parts[0];
-    // Don't treat "www" as a tenant slug
-    if (slug !== "www") {
-      return slug;
-    }
+  // Extract the subdomain part
+  const slug = host.slice(0, -(TENANT_DOMAIN.length + 1)); // strip ".insurediq.com"
+
+  // Must be a single subdomain segment (no dots), not empty, not "www"
+  if (!slug || slug.includes(".") || slug === "www") {
+    return null;
   }
 
-  return null;
+  return slug;
 }
 
 export async function middleware(request: NextRequest) {
