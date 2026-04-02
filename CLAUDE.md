@@ -102,4 +102,5 @@ Phase 2 — In progress:
 4. Policies list page with placeholder data ✅
 5. Stripe SaaS billing — migration, webhook, checkout, billing page ✅
 6. Tenant billing management page (`/dashboard/billing`) ✅
-7. Analytics dashboard with KPIs and charts (`/dashboard/analytics`)
+7. Analytics dashboard with KPIs and charts (`/dashboard/analytics`) ✅
+8. Public customer quoting flow — branded landing pages at `/{slug}` and `/{slug}/{product}`

@@ -5,6 +5,12 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Routes that don't require authentication */
 const PUBLIC_PATHS = ["/login", "/auth", "/portal/login"];
 
+/** Check if a path is a public tenant page (e.g. /acme, /acme/car) */
+function isPublicTenantPath(pathname: string): boolean {
+  // Match /{slug} or /{slug}/{product} — slug is lowercase alphanumeric + hyphens
+  return /^\/[a-z0-9][a-z0-9-]*\/?([a-z]+)?$/.test(pathname);
+}
+
 /** Routes accessible to authenticated users who haven't completed onboarding */
 const ONBOARDING_PATHS = ["/onboarding"];
 
@@ -114,7 +120,7 @@ export async function updateSession(request: NextRequest) {
 
   // ── Unauthenticated users ──────────────────────────────────
   if (!user) {
-    if (isPublicPath(pathname)) {
+    if (isPublicPath(pathname) || isPublicTenantPath(pathname)) {
       return supabaseResponse;
     }
     const url = request.nextUrl.clone();
