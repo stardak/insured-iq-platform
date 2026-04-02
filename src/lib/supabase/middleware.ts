@@ -56,8 +56,8 @@ async function needsOnboarding(userId: string): Promise<boolean> {
 
   if (!profile) return true;
 
-  const tenant = profile.tenants as { name: string } | null;
-  return tenant?.name === "Onboarding";
+  const tenants = profile.tenants as { name: string }[] | null;
+  return tenants?.[0]?.name === "Onboarding";
 }
 
 /**
