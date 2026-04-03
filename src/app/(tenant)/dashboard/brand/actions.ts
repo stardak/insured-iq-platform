@@ -156,17 +156,18 @@ export async function uploadLogo(
   const ext = file.name.split(".").pop() ?? "png";
   const filePath = `${profile.tenant_id}/logo.${ext}`;
 
-  const { error } = await supabase.storage
+  const { error } = await admin.storage
     .from("brand-assets")
     .upload(filePath, file, { upsert: true });
 
   if (error) {
-    return { url: null, error: "Failed to upload logo" };
+    console.error("Logo upload error:", error);
+    return { url: null, error: error.message || "Failed to upload logo" };
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("brand-assets").getPublicUrl(filePath);
+  } = admin.storage.from("brand-assets").getPublicUrl(filePath);
 
   return { url: publicUrl, error: null };
 }
