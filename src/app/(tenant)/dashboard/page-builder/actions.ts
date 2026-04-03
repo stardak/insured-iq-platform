@@ -158,17 +158,18 @@ export async function uploadHeroImage(
   const ext = file.name.split(".").pop() ?? "jpg";
   const filePath = `${profile.tenant_id}/hero.${ext}`;
 
-  const { error } = await supabase.storage
+  const { error } = await admin.storage
     .from("brand-assets")
     .upload(filePath, file, { upsert: true });
 
   if (error) {
-    return { url: null, error: "Failed to upload hero image" };
+    console.error("Hero upload error:", error);
+    return { url: null, error: error.message || "Failed to upload hero image" };
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("brand-assets").getPublicUrl(filePath);
+  } = admin.storage.from("brand-assets").getPublicUrl(filePath);
 
   return { url: publicUrl, error: null };
 }

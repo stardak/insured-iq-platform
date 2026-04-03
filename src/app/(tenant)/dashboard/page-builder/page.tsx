@@ -855,6 +855,9 @@ export default function PageBuilderPage() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Hero Image</Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Recommended: 1920×1080px, PNG/JPG/WebP, max 5MB
+                    </p>
                     <div className="flex items-center gap-3">
                       {config.hero_image_url ? (
                         <div className="relative size-16 overflow-hidden rounded-lg border">
