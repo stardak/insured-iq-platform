@@ -106,18 +106,91 @@ const SECTION_META = {
     label: "Testimonials",
     description: "Customer quotes and ratings",
     icon: Star,
+    color: "teal",
+    bgClass: "bg-teal-50",
+    iconClass: "text-teal-600",
+    ringClass: "ring-teal-200",
+    badgeClass: "bg-teal-50 text-teal-700",
+    itemLabel: (n: number) => `${n} testimonial${n !== 1 ? "s" : ""}`,
   },
   faq: {
     label: "FAQ",
     description: "Frequently asked questions",
     icon: HelpCircle,
+    color: "amber",
+    bgClass: "bg-amber-50",
+    iconClass: "text-amber-600",
+    ringClass: "ring-amber-200",
+    badgeClass: "bg-amber-50 text-amber-700",
+    itemLabel: (n: number) => `${n} FAQ${n !== 1 ? "s" : ""}`,
   },
   features: {
     label: "Features",
     description: "Key features with icons",
     icon: Sparkles,
+    color: "purple",
+    bgClass: "bg-purple-50",
+    iconClass: "text-purple-600",
+    ringClass: "ring-purple-200",
+    badgeClass: "bg-purple-50 text-purple-700",
+    itemLabel: (n: number) => `${n} feature${n !== 1 ? "s" : ""}`,
   },
 } as const;
+
+// ─── Feature Icon Picker ─────────────────────────────────────
+
+const FEATURE_ICONS = [
+  "Shield", "Star", "Zap", "Heart", "Lock", "Clock",
+  "DollarSign", "Users", "CheckCircle", "Award",
+  "Globe", "Smartphone", "Mail", "FileText", "BarChart",
+  "Umbrella", "TrendingUp", "Eye", "Wifi", "CloudRain",
+];
+
+function FeatureIconPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (icon: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <Sparkles className="size-3.5" />
+        {value || "Pick icon"}
+        <ChevronDown className="size-3 text-gray-400" />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-1 grid w-56 grid-cols-5 gap-1 rounded-lg border bg-white p-2 shadow-xl">
+          {FEATURE_ICONS.map((icon) => (
+            <button
+              key={icon}
+              type="button"
+              onClick={() => {
+                onChange(icon);
+                setOpen(false);
+              }}
+              className={`flex flex-col items-center gap-0.5 rounded-md px-1 py-1.5 text-[9px] transition-colors ${
+                value === icon
+                  ? "bg-purple-100 text-purple-700 font-semibold"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              <Sparkles className="size-3.5" />
+              {icon}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── FAQ Editor ──────────────────────────────────────────────
 
@@ -143,37 +216,47 @@ function FaqEditor({
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div key={i} className="rounded-lg border p-3 space-y-2">
-          <div className="flex items-start gap-2">
+        <div
+          key={i}
+          className="group rounded-xl border border-amber-100 bg-amber-50/30 p-4 space-y-3 transition-all hover:border-amber-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-700">
+              Q{i + 1}
+            </div>
             <div className="flex-1 space-y-2">
               <Input
-                placeholder="Question"
+                placeholder="What is this question about?"
                 value={item.question}
                 onChange={(e) => updateItem(i, "question", e.target.value)}
+                className="font-medium"
               />
               <Textarea
-                placeholder="Answer"
+                placeholder="Write a helpful answer..."
                 value={item.answer}
                 onChange={(e) => updateItem(i, "answer", e.target.value)}
                 rows={2}
+                className="text-sm"
               />
             </div>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="shrink-0 text-destructive hover:text-destructive"
+              className="shrink-0 rounded-md p-1.5 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
               onClick={() => removeItem(i)}
             >
               <Trash2 className="size-4" />
-            </Button>
+            </button>
           </div>
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={addItem}>
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-amber-200 bg-amber-50/50 px-3 py-2.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 hover:border-amber-300"
+      >
         <Plus className="size-3.5" />
         Add Question
-      </Button>
+      </button>
     </div>
   );
 }
@@ -206,32 +289,44 @@ function TestimonialsEditor({
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div key={i} className="rounded-lg border p-3 space-y-2">
-          <div className="flex items-start gap-2">
+        <div
+          key={i}
+          className="group rounded-xl border border-teal-100 bg-teal-50/30 p-4 space-y-3 transition-all hover:border-teal-200"
+        >
+          <div className="flex items-start gap-3">
+            {/* Avatar initial */}
+            <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white shadow-sm">
+              {item.name ? item.name[0].toUpperCase() : "?"}
+            </div>
             <div className="flex-1 space-y-2">
               <Input
                 placeholder="Customer name"
                 value={item.name}
                 onChange={(e) => updateItem(i, "name", e.target.value)}
+                className="font-medium"
               />
               <Textarea
-                placeholder="Quote / testimonial"
+                placeholder="&quot;This product changed my life...&quot;"
                 value={item.quote}
                 onChange={(e) => updateItem(i, "quote", e.target.value)}
                 rows={2}
+                className="text-sm italic"
               />
+              {/* Star rating */}
               <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Rating:</Label>
-                <div className="flex gap-1">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+                  Rating
+                </span>
+                <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
                       onClick={() => updateItem(i, "rating", star)}
-                      className="transition-colors"
+                      className="transition-transform hover:scale-110"
                     >
                       <Star
-                        className={`size-4 ${
+                        className={`size-4.5 ${
                           star <= item.rating
                             ? "fill-amber-400 text-amber-400"
                             : "text-gray-300"
@@ -242,22 +337,24 @@ function TestimonialsEditor({
                 </div>
               </div>
             </div>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="shrink-0 text-destructive hover:text-destructive"
+              className="shrink-0 rounded-md p-1.5 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
               onClick={() => removeItem(i)}
             >
               <Trash2 className="size-4" />
-            </Button>
+            </button>
           </div>
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={addItem}>
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-teal-200 bg-teal-50/50 px-3 py-2.5 text-xs font-medium text-teal-700 transition-colors hover:bg-teal-50 hover:border-teal-300"
+      >
         <Plus className="size-3.5" />
         Add Testimonial
-      </Button>
+      </button>
     </div>
   );
 }
@@ -290,44 +387,68 @@ function FeaturesEditor({
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div key={i} className="rounded-lg border p-3 space-y-2">
-          <div className="flex items-start gap-2">
+        <div
+          key={i}
+          className="group rounded-xl border border-purple-100 bg-purple-50/30 p-4 space-y-2 transition-all hover:border-purple-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+              <Sparkles className="size-4" />
+            </div>
             <div className="flex-1 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="Icon name (e.g. Shield)"
+              <div className="flex items-center gap-2">
+                <FeatureIconPicker
                   value={item.icon}
-                  onChange={(e) => updateItem(i, "icon", e.target.value)}
+                  onChange={(icon) => updateItem(i, "icon", icon)}
                 />
                 <Input
-                  placeholder="Title"
+                  placeholder="Feature title"
                   value={item.title}
                   onChange={(e) => updateItem(i, "title", e.target.value)}
+                  className="flex-1 font-medium"
                 />
               </div>
               <Input
-                placeholder="Description"
+                placeholder="Short description of this feature..."
                 value={item.description}
                 onChange={(e) => updateItem(i, "description", e.target.value)}
+                className="text-sm"
               />
             </div>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="shrink-0 text-destructive hover:text-destructive"
+              className="shrink-0 rounded-md p-1.5 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
               onClick={() => removeItem(i)}
             >
               <Trash2 className="size-4" />
-            </Button>
+            </button>
           </div>
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={addItem}>
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-purple-200 bg-purple-50/50 px-3 py-2.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-50 hover:border-purple-300"
+      >
         <Plus className="size-3.5" />
         Add Feature
-      </Button>
+      </button>
     </div>
+  );
+}
+
+// ─── Drag Handle Icon ────────────────────────────────────────
+
+function GripIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" className={className}>
+      <circle cx="5" cy="3" r="1.2" />
+      <circle cx="11" cy="3" r="1.2" />
+      <circle cx="5" cy="8" r="1.2" />
+      <circle cx="11" cy="8" r="1.2" />
+      <circle cx="5" cy="13" r="1.2" />
+      <circle cx="11" cy="13" r="1.2" />
+    </svg>
   );
 }
 
@@ -353,64 +474,93 @@ function SectionCard({
   const [expanded, setExpanded] = useState(false);
   const meta = SECTION_META[section.type];
   const Icon = meta.icon;
+  const itemCount = (section.content?.items as unknown[] | undefined)?.length ?? 0;
 
   return (
-    <Card className={!section.enabled ? "opacity-60" : ""}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          {/* Reorder buttons */}
-          <div className="flex flex-col gap-0.5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              disabled={isFirst}
-              onClick={onMoveUp}
-            >
-              <ChevronUp className="size-3.5" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              disabled={isLast}
-              onClick={onMoveDown}
-            >
-              <ChevronDown className="size-3.5" />
-            </Button>
-          </div>
-
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon className="size-4" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm">{meta.label}</CardTitle>
-            <CardDescription className="text-xs">
-              {meta.description}
-            </CardDescription>
-          </div>
-
-          <Switch checked={section.enabled} onCheckedChange={onToggle} />
-        </div>
-      </CardHeader>
-
-      {section.enabled && (
-        <CardContent className="pt-0">
-          <Button
+    <div
+      className={`rounded-xl border bg-white shadow-sm transition-all ${
+        section.enabled
+          ? "border-gray-200 hover:shadow-md"
+          : "border-gray-100 opacity-60"
+      }`}
+    >
+      {/* Card Header */}
+      <div className="flex items-center gap-3 px-4 py-3.5">
+        {/* Drag handle + reorder */}
+        <div className="flex flex-col items-center gap-0.5">
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="mb-3 text-xs"
-            onClick={() => setExpanded(!expanded)}
+            disabled={isFirst}
+            onClick={onMoveUp}
+            className="rounded p-0.5 text-gray-300 hover:text-gray-500 disabled:opacity-25 transition-colors"
           >
-            {expanded ? "Collapse" : "Edit content"}
-          </Button>
+            <ChevronUp className="size-3" />
+          </button>
+          <GripIcon className="size-4 text-gray-300" />
+          <button
+            type="button"
+            disabled={isLast}
+            onClick={onMoveDown}
+            className="rounded p-0.5 text-gray-300 hover:text-gray-500 disabled:opacity-25 transition-colors"
+          >
+            <ChevronDown className="size-3" />
+          </button>
+        </div>
 
-          {expanded && (
-            <div className="mt-1">
+        {/* Coloured icon */}
+        <div
+          className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${meta.bgClass} ${meta.iconClass} ring-1 ${meta.ringClass}`}
+        >
+          <Icon className="size-5" />
+        </div>
+
+        {/* Title + subtitle */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold text-gray-900">{meta.label}</h4>
+            {itemCount > 0 && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${meta.badgeClass}`}
+              >
+                {meta.itemLabel(itemCount)}
+              </span>
+            )}
+            {!section.enabled && (
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                Hidden from page
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500">{meta.description}</p>
+        </div>
+
+        {/* Toggle */}
+        <Switch checked={section.enabled} onCheckedChange={onToggle} />
+      </div>
+
+      {/* Expand trigger */}
+      {section.enabled && (
+        <div className="border-t border-gray-100">
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="flex w-full items-center justify-between px-4 py-2.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50"
+          >
+            <span>{expanded ? "Collapse editor" : "Edit content"}</span>
+            <ChevronDown
+              className={`size-3.5 transition-transform duration-200 ${
+                expanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {/* Smooth expand */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              expanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="border-t border-gray-100 px-4 py-4">
               {section.type === "faq" && (
                 <FaqEditor
                   items={section.content.items as FaqItem[]}
@@ -430,10 +580,10 @@ function SectionCard({
                 />
               )}
             </div>
-          )}
-        </CardContent>
+          </div>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }
 
