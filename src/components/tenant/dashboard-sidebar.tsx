@@ -9,6 +9,7 @@ import {
   CubeIcon,
   SwatchIcon,
   RectangleGroupIcon,
+  CodeBracketIcon,
   UsersIcon,
   CreditCardIcon,
   ArrowRightStartOnRectangleIcon,
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { name: "Products", href: "/dashboard/products", icon: CubeIcon },
   { name: "Brand Settings", href: "/dashboard/brand", icon: SwatchIcon },
   { name: "Page Builder", href: "/dashboard/page-builder", icon: RectangleGroupIcon },
+  { name: "Embed", href: "/dashboard/embed", icon: CodeBracketIcon },
   { name: "Team", href: "/dashboard/team", icon: UsersIcon },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCardIcon },
 ];
