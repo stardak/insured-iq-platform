@@ -9,28 +9,11 @@ import type { BrandConfig } from "@/types/brand";
 
 // ─── Types ───────────────────────────────────────────────────
 
-type EmbedVariant = "full" | "inline";
-
 interface Product {
   type: string;
   label: string;
   icon: string;
 }
-
-const VARIANT_INFO: Record<
-  EmbedVariant,
-  { title: string; description: string }
-> = {
-  full: {
-    title: "Full Widget",
-    description: "A complete quote form. Drops in where the script tag is.",
-  },
-  inline: {
-    title: "Inline Embed",
-    description:
-      "Injects the widget into a specific div on the page by its ID.",
-  },
-};
 
 const BASE_URL = "https://insured-iq-platform.vercel.app";
 
@@ -45,14 +28,12 @@ export function EmbedPageClient({
   brand: BrandConfig;
   products: Product[];
 }) {
-  const [variant, setVariant] = useState<EmbedVariant>("full");
   const [width, setWidth] = useState(480);
   const [selectedProducts, setSelectedProducts] = useState<string[]>(
     products.map((p) => p.type)
   );
   const [preSelectedProduct, setPreSelectedProduct] = useState("");
   const [ctaText, setCtaText] = useState("Get a quote");
-  const [targetDiv, setTargetDiv] = useState("my-insurance-widget");
   const [copied, setCopied] = useState(false);
 
   // Build the embed code string
@@ -60,7 +41,6 @@ export function EmbedPageClient({
     const attrs: string[] = [
       `src="${BASE_URL}/embed.js"`,
       `data-tenant="${slug}"`,
-      `data-variant="${variant}"`,
     ];
 
     if (width !== 480) {
@@ -82,29 +62,20 @@ export function EmbedPageClient({
       attrs.push(`data-cta="${ctaText}"`);
     }
 
-    if (variant === "inline") {
-      attrs.push(`data-target="${targetDiv}"`);
-    }
-
     return `<script ${attrs.join("\n  ")}></script>`;
   }, [
     slug,
-    variant,
     width,
     selectedProducts,
     products.length,
     preSelectedProduct,
     ctaText,
-    targetDiv,
   ]);
 
-  // Full snippet (including target div for inline variant)
+  // Full snippet
   const fullSnippet = useMemo(() => {
-    if (variant === "inline") {
-      return `<!-- Place this div where you want the widget to appear -->\n<div id="${targetDiv}"></div>\n\n<!-- Insured IQ Widget Script -->\n${embedCode}`;
-    }
     return `<!-- Insured IQ Widget Script -->\n${embedCode}`;
-  }, [variant, targetDiv, embedCode]);
+  }, [embedCode]);
 
   // Build iframe URL for preview
   const previewIframeSrc = useMemo(() => {
@@ -141,42 +112,6 @@ export function EmbedPageClient({
     <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-6">
       {/* ── Left column: Config + Code ─────────────── */}
       <div className="space-y-6">
-        {/* Variant selector */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">
-            Widget Type
-          </h3>
-          <div className="space-y-2">
-            {(Object.keys(VARIANT_INFO) as EmbedVariant[]).map((v) => (
-              <label
-                key={v}
-                className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${
-                  variant === v
-                    ? "border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="variant"
-                  value={v}
-                  checked={variant === v}
-                  onChange={() => setVariant(v)}
-                  className="mt-0.5 accent-indigo-600"
-                />
-                <div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {VARIANT_INFO[v].title}
-                  </span>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {VARIANT_INFO[v].description}
-                  </p>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
         {/* Customisation options */}
         <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
           <h3 className="text-sm font-semibold text-gray-900">
@@ -261,24 +196,7 @@ export function EmbedPageClient({
             />
           </div>
 
-          {/* Target DIV (inline only) */}
-          {variant === "inline" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Target div ID
-              </label>
-              <div className="flex items-center gap-1">
-                <span className="text-sm text-gray-400">#</span>
-                <input
-                  type="text"
-                  value={targetDiv}
-                  onChange={(e) => setTargetDiv(e.target.value)}
-                  placeholder="my-insurance-widget"
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:outline-none"
-                />
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Generated embed code */}
