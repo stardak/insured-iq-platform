@@ -129,9 +129,9 @@ export default function WidgetClient({
       style={{
         fontFamily: `'${brand.font}', system-ui, sans-serif`,
       }}
-      className="w-full"
+      className="w-full overflow-hidden"
     >
-      <div className="mx-auto max-w-lg px-4 py-6">
+      <div className="w-full px-6 py-6">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           {brand.logo_url ? (
