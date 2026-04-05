@@ -9,7 +9,7 @@ import type { BrandConfig } from "@/types/brand";
 
 // ─── Types ───────────────────────────────────────────────────
 
-type EmbedVariant = "full" | "floating" | "inline";
+type EmbedVariant = "full" | "inline";
 
 interface Product {
   type: string;
@@ -24,11 +24,6 @@ const VARIANT_INFO: Record<
   full: {
     title: "Full Widget",
     description: "A complete quote form. Drops in where the script tag is.",
-  },
-  floating: {
-    title: "Floating Button",
-    description:
-      "A fixed bottom-right button that opens the widget in a modal.",
   },
   inline: {
     title: "Inline Embed",
@@ -401,93 +396,38 @@ export function EmbedPageClient({
                 </div>
 
                 {/* Widget embed area */}
-                {variant === "floating" ? (
-                  // For floating variant, show more fake page content
-                  <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="h-24 rounded-lg bg-gray-50 border border-gray-100" />
-                      <div className="h-24 rounded-lg bg-gray-50 border border-gray-100" />
-                      <div className="h-24 rounded-lg bg-gray-50 border border-gray-100" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 w-full rounded bg-gray-100" />
-                      <div className="h-3 w-5/6 rounded bg-gray-100" />
-                      <div className="h-3 w-4/6 rounded bg-gray-100" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-32 rounded-lg bg-gray-50 border border-gray-100" />
-                      <div className="h-32 rounded-lg bg-gray-50 border border-gray-100" />
-                    </div>
-                    <div className="space-y-2 max-w-lg">
-                      <div className="h-3 w-full rounded bg-gray-100" />
-                      <div className="h-3 w-3/4 rounded bg-gray-100" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="h-20 rounded-lg bg-gray-50 border border-gray-100" />
-                      <div className="h-20 rounded-lg bg-gray-50 border border-gray-100" />
-                      <div className="h-20 rounded-lg bg-gray-50 border border-gray-100" />
-                    </div>
+                <div className="flex justify-center py-4">
+                  <div
+                    style={{ maxWidth: `${width}px`, width: "100%" }}
+                  >
+                    <iframe
+                      src={previewIframeSrc}
+                      className="w-full"
+                      style={{
+                        height: "540px",
+                        border: "none",
+                        borderRadius: "16px",
+                        boxShadow:
+                          "0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05)",
+                      }}
+                      title="Widget preview"
+                    />
                   </div>
-                ) : (
-                  <>
-                    <div className="flex justify-center py-4">
-                      <div
-                        style={{ maxWidth: `${width}px`, width: "100%" }}
-                      >
-                        <iframe
-                          src={previewIframeSrc}
-                          className="w-full"
-                          style={{
-                            height: "540px",
-                            border: "none",
-                            borderRadius: "16px",
-                            boxShadow:
-                              "0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05)",
-                          }}
-                          title="Widget preview"
-                        />
-                      </div>
-                    </div>
+                </div>
 
-                    {/* More fake content below */}
-                    <div className="space-y-2 max-w-lg">
-                      <div className="h-3 w-full rounded bg-gray-100" />
-                      <div className="h-3 w-3/4 rounded bg-gray-100" />
-                    </div>
-                  </>
-                )}
+                {/* More fake content below */}
+                <div className="space-y-2 max-w-lg">
+                  <div className="h-3 w-full rounded bg-gray-100" />
+                  <div className="h-3 w-3/4 rounded bg-gray-100" />
+                </div>
               </div>
+              {/* /px-6 py-8 */}
             </div>
+            {/* /bg-white */}
           </div>
-
-          {/* Floating button — rendered OUTSIDE the overflow-hidden browser window */}
-          {variant === "floating" && (
-            <div className="absolute bottom-8 right-8 z-10">
-              <div
-                className="flex size-14 items-center justify-center rounded-full text-white shadow-xl cursor-pointer transition-transform hover:scale-110 animate-bounce"
-                style={{
-                  backgroundColor: brand.primary_colour,
-                  boxShadow: `0 8px 24px ${brand.primary_colour}40`,
-                }}
-              >
-                <svg
-                  className="size-6"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </div>
-              <div className="absolute -top-8 right-0 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
-                Get a quote →
-              </div>
-            </div>
-          )}
+          {/* /browser window */}
         </div>
+        {/* /preview container */}
       </div>
     </div>
   );
