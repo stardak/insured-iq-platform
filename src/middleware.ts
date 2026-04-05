@@ -36,6 +36,20 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "";
   const { pathname } = request.nextUrl;
 
+  // ── Site-wide password gate ────────────────────────────────
+  // Skip the gate for: /gate page, /api/gate endpoint, /embed routes
+  const isGateRoute = pathname === "/gate" || pathname === "/api/gate";
+  const isEmbedRoute = pathname.startsWith("/embed");
+
+  if (!isGateRoute && !isEmbedRoute) {
+    const siteAccess = request.cookies.get("site_access")?.value;
+    if (siteAccess !== "granted") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/gate";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // ── Subdomain routing ──────────────────────────────────────
   // If we detect a tenant subdomain, rewrite to the (public) route group.
   // acme.insurediq.com → rewrite to /(public)/acme
