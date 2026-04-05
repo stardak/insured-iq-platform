@@ -189,7 +189,7 @@ export default function WidgetClient({
             <p className="text-sm text-gray-500 mb-4">
               Choose a product to get started.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${products.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
               {products.map((product) => {
                 const Icon = ICON_MAP[product.icon] ?? Activity;
                 return (
