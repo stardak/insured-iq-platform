@@ -436,7 +436,7 @@ export default function WidgetClient({
         {/* Powered by footer */}
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-[10px] text-gray-400 text-center">
-            Powered by {tenantName}
+            Powered by Insured IQ
           </p>
         </div>
       </div>
