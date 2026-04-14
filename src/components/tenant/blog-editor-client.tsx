@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
+import type { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -131,7 +132,7 @@ function ColourPicker({
 
 // ─── Toolbar ─────────────────────────────────────────────────
 
-function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
+function Toolbar({ editor }: { editor: Editor | null }) {
   const [textColour, setTextColour] = useState("#111827");
   const [highlightColour, setHighlightColour] = useState("#FEF08A");
 
