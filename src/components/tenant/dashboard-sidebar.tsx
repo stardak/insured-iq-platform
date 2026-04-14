@@ -14,6 +14,7 @@ import {
   CreditCardIcon,
   ArrowRightStartOnRectangleIcon,
   ArrowTopRightOnSquareIcon,
+  NewspaperIcon,
 } from "@heroicons/react/24/outline";
 import { createBrowserClient } from "@supabase/ssr";
 
@@ -28,6 +29,11 @@ const NAV_ITEMS = [
   { name: "Embed", href: "/dashboard/embed", icon: CodeBracketIcon },
   { name: "Team", href: "/dashboard/team", icon: UsersIcon },
   { name: "Billing", href: "/dashboard/billing", icon: CreditCardIcon },
+];
+
+const BLOG_SUBNAV = [
+  { name: "Posts", href: "/dashboard/blog" },
+  { name: "Subscribers", href: "/dashboard/blog/subscribers" },
 ];
 
 // ─── User profile data ─────────────────────────────────────
@@ -144,6 +150,58 @@ export function DashboardSidebar({ tenantSlug }: { tenantSlug?: string | null })
                   </li>
                 );
               })}
+
+              {/* Blog with sub-nav */}
+              {(() => {
+                const isBlogActive = pathname.startsWith("/dashboard/blog");
+                return (
+                  <li>
+                    <Link
+                      href="/dashboard/blog"
+                      className={cn(
+                        isBlogActive
+                          ? "bg-white/5 text-white"
+                          : "text-gray-400 hover:bg-white/5 hover:text-white",
+                        "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                      )}
+                    >
+                      <NewspaperIcon
+                        aria-hidden="true"
+                        className={cn(
+                          isBlogActive ? "text-white" : "text-gray-400 group-hover:text-white",
+                          "size-6 shrink-0"
+                        )}
+                      />
+                      Blog
+                    </Link>
+                    {isBlogActive && (
+                      <ul className="ml-9 mt-1 space-y-1">
+                        {BLOG_SUBNAV.map((sub) => {
+                          const isSubActive =
+                            sub.href === "/dashboard/blog"
+                              ? pathname === "/dashboard/blog"
+                              : pathname.startsWith(sub.href);
+                          return (
+                            <li key={sub.href}>
+                              <Link
+                                href={sub.href}
+                                className={cn(
+                                  isSubActive
+                                    ? "text-white"
+                                    : "text-gray-400 hover:text-white",
+                                  "block rounded-md px-2 py-1 text-sm/6 font-medium"
+                                )}
+                              >
+                                {sub.name}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })()}
             </ul>
           </li>
 

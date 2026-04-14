@@ -5,15 +5,16 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Routes that don't require authentication */
 const PUBLIC_PATHS = ["/login", "/register", "/auth", "/portal/login"];
 
-/** Check if a path is a public tenant page (e.g. /acme, /acme/car) */
+/** Check if a path is a public tenant page (e.g. /acme, /acme/car, /acme/blog, /acme/blog/post-slug) */
 function isPublicTenantPath(pathname: string): boolean {
   // Exclude known app route prefixes — use segment boundary matching
   // to avoid false positives (e.g. slug "onboarding-abc" != route "/onboarding")
   const appRoutes = ["/super-admin", "/dashboard", "/portal", "/onboarding", "/api", "/login", "/register", "/auth", "/preview"];
   const isAppRoute = appRoutes.some((r) => pathname === r || pathname.startsWith(r + "/"));
   if (isAppRoute) return false;
-  // Match /{slug} or /{slug}/{product} — slug is lowercase alphanumeric + hyphens
-  return /^\/[a-z0-9][a-z0-9-]*\/?([a-z]+)?$/.test(pathname);
+  // Match /{slug}, /{slug}/{segment}, /{slug}/{segment}/{segment} etc.
+  // Slug and path segments are lowercase alphanumeric + hyphens.
+  return /^\/[a-z0-9][a-z0-9-]*((\/[a-z0-9][a-z0-9-]*)*\/?)?$/.test(pathname);
 }
 
 /** Routes accessible to authenticated users who haven't completed onboarding */

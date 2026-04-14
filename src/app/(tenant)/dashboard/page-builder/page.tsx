@@ -52,6 +52,7 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  Newspaper,
 } from "lucide-react";
 
 // ─── Preset Video Backgrounds ────────────────────────────────
@@ -134,6 +135,17 @@ const SECTION_META = {
     ringClass: "ring-purple-200",
     badgeClass: "bg-purple-50 text-purple-700",
     itemLabel: (n: number) => `${n} feature${n !== 1 ? "s" : ""}`,
+  },
+  blog: {
+    label: "Blog",
+    description: "Latest posts from your blog",
+    icon: Newspaper,
+    color: "indigo",
+    bgClass: "bg-indigo-50",
+    iconClass: "text-indigo-600",
+    ringClass: "ring-indigo-200",
+    badgeClass: "bg-indigo-50 text-indigo-700",
+    itemLabel: (_n: number) => "blog posts",
   },
 } as const;
 
@@ -437,6 +449,80 @@ function FeaturesEditor({
   );
 }
 
+// ─── Blog Section Editor ──────────────────────────────────────
+
+function BlogSectionEditor({
+  content,
+  onChange,
+}: {
+  content: PageSection["content"];
+  onChange: (c: PageSection["content"]) => void;
+}) {
+  const heading = content.heading ?? "Latest from our blog";
+  const subtitle = content.subtitle ?? "";
+  const ctaText = content.cta_text ?? "View all posts";
+  const postCount = content.post_count ?? 3;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-indigo-100 bg-indigo-50/30 p-3 text-xs text-indigo-700">
+        <Newspaper className="mb-1 size-3.5 inline-block mr-1" />
+        This section automatically pulls your latest published blog posts.
+        No manual content needed.
+      </div>
+
+      <div>
+        <Label className="mb-1.5 block text-xs">Section Heading</Label>
+        <Input
+          value={heading}
+          onChange={(e) => onChange({ ...content, heading: e.target.value })}
+          placeholder="Latest from our blog"
+        />
+      </div>
+
+      <div>
+        <Label className="mb-1.5 block text-xs">Subtitle</Label>
+        <Textarea
+          value={subtitle}
+          onChange={(e) => onChange({ ...content, subtitle: e.target.value })}
+          placeholder="A short description..."
+          rows={2}
+          className="text-sm"
+        />
+      </div>
+
+      <div>
+        <Label className="mb-1.5 block text-xs">CTA Button Text</Label>
+        <Input
+          value={ctaText}
+          onChange={(e) => onChange({ ...content, cta_text: e.target.value })}
+          placeholder="View all posts"
+        />
+      </div>
+
+      <div>
+        <Label className="mb-1.5 block text-xs">Posts to show</Label>
+        <div className="flex gap-2">
+          {[3, 4, 6].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange({ ...content, post_count: n })}
+              className={`flex-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                postCount === n
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Drag Handle Icon ────────────────────────────────────────
 
 function GripIcon({ className }: { className?: string }) {
@@ -472,7 +558,7 @@ function SectionCard({
   isLast: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const meta = SECTION_META[section.type];
+  const meta = SECTION_META[section.type as keyof typeof SECTION_META] ?? SECTION_META.features;
   const Icon = meta.icon;
   const itemCount = (section.content?.items as unknown[] | undefined)?.length ?? 0;
 
@@ -577,6 +663,12 @@ function SectionCard({
                 <FeaturesEditor
                   items={section.content.items as FeatureItem[]}
                   onChange={(items) => onContentChange({ items })}
+                />
+              )}
+              {section.type === "blog" && (
+                <BlogSectionEditor
+                  content={section.content}
+                  onChange={(c) => onContentChange(c)}
                 />
               )}
             </div>

@@ -39,7 +39,7 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = {
 
 // ─── Page Builder types ─────────────────────────────────────
 
-export type SectionType = "testimonials" | "faq" | "features";
+export type SectionType = "testimonials" | "faq" | "features" | "blog";
 
 export interface FaqItem {
   question: string;
@@ -58,13 +58,25 @@ export interface FeatureItem {
   description: string;
 }
 
+export interface BlogSectionContent {
+  heading: string;
+  subtitle: string;
+  cta_text: string;
+  post_count: number; // 3, 4, or 6
+}
+
 export interface PageSection {
   id: string;
   type: SectionType;
   enabled: boolean;
   order: number;
   content: {
-    items: FaqItem[] | TestimonialItem[] | FeatureItem[];
+    items?: FaqItem[] | TestimonialItem[] | FeatureItem[];
+    // blog section fields
+    heading?: string;
+    subtitle?: string;
+    cta_text?: string;
+    post_count?: number;
   };
 }
 
@@ -133,6 +145,18 @@ export const DEFAULT_PAGE_CONFIG: PageConfig = {
           { icon: "Clock", title: "Quick Claims", description: "We process 90% of claims within 48 hours." },
           { icon: "HeadphonesIcon", title: "24/7 Support", description: "Our team is always available to help you." },
         ] as FeatureItem[],
+      },
+    },
+    {
+      id: "blog",
+      type: "blog",
+      enabled: false,
+      order: 3,
+      content: {
+        heading: "Latest from our blog",
+        subtitle: "Insights, guides, and news to help you make the most of your cover.",
+        cta_text: "View all posts",
+        post_count: 3,
       },
     },
   ],

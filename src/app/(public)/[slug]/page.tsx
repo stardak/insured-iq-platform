@@ -29,6 +29,7 @@ import type {
   TestimonialItem,
   FeatureItem,
 } from "@/types/brand";
+import { prisma } from "@/lib/prisma";
 import FaqDisclosure from "./faq-disclosure";
 import HeroVideo from "./hero-video";
 
@@ -455,6 +456,142 @@ function FeaturesSection({
   );
 }
 
+// ─── Blog Section ────────────────────────────────────────────
+
+async function BlogSection({
+  section,
+  slug,
+  tenantId,
+  primaryColour,
+  dark,
+}: {
+  section: PageSection;
+  slug: string;
+  tenantId: string;
+  primaryColour: string;
+  dark: boolean;
+}) {
+  const count = section.content.post_count ?? 3;
+  const heading = section.content.heading || "Latest from our blog";
+  const subtitle = section.content.subtitle || "";
+  const ctaText = section.content.cta_text || "View all posts";
+
+  const posts = await prisma.blogPost.findMany({
+    where: { tenant_id: tenantId, status: "PUBLISHED", deleted_at: null },
+    orderBy: { published_at: "desc" },
+    take: count,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      excerpt: true,
+      cover_image: true,
+      tags: true,
+      published_at: true,
+      created_at: true,
+    },
+  });
+
+  if (posts.length === 0) return null;
+
+  function fmtDate(d: Date) {
+    return new Date(d).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  return (
+    <div className={`py-24 sm:py-32 ${dark ? "bg-slate-800/50" : "bg-gray-50"}`}>
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center mb-12">
+          <h2 className="text-base/7 font-semibold" style={{ color: primaryColour }}>
+            Blog
+          </h2>
+          <p className={`mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl ${
+            dark ? "text-white" : "text-gray-900"
+          }`}>
+            {heading}
+          </p>
+          {subtitle && (
+            <p className={`mt-4 text-lg/8 ${dark ? "text-gray-400" : "text-gray-600"}`}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        <div className={`grid gap-8 ${
+          count === 4
+            ? "sm:grid-cols-2 lg:grid-cols-4"
+            : "sm:grid-cols-2 lg:grid-cols-3"
+        }`}>
+          {posts.map((post) => (
+            <Link
+              key={post.id}
+              href={`/${slug}/blog/${post.slug}`}
+              className={`group flex flex-col overflow-hidden rounded-2xl border shadow-sm transition-shadow hover:shadow-md ${
+                dark ? "border-slate-700 bg-slate-800" : "border-gray-100 bg-white"
+              }`}
+            >
+              {post.cover_image ? (
+                <img
+                  src={post.cover_image}
+                  alt={post.title}
+                  className="h-44 w-full object-cover"
+                />
+              ) : (
+                <div className="h-44 w-full" style={{ background: `${primaryColour}18` }} />
+              )}
+              <div className="flex flex-1 flex-col p-5">
+                {post.tags.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1">
+                    {post.tags.slice(0, 2).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{ background: `${primaryColour}18`, color: primaryColour }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <h3 className={`text-sm font-bold line-clamp-2 group-hover:underline underline-offset-2 ${
+                  dark ? "text-white" : "text-gray-900"
+                }`}>
+                  {post.title}
+                </h3>
+                {post.excerpt && (
+                  <p className={`mt-2 flex-1 text-xs line-clamp-3 ${
+                    dark ? "text-gray-400" : "text-gray-500"
+                  }`}>
+                    {post.excerpt}
+                  </p>
+                )}
+                <p className={`mt-3 text-[11px] ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                  {fmtDate(post.published_at ?? post.created_at)}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href={`/${slug}/blog`}
+            className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: primaryColour }}
+          >
+            {ctaText}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────
 
 export default async function TenantLandingPage({
@@ -471,6 +608,14 @@ export default async function TenantLandingPage({
 
   const { brand, products, tenantName, pageConfig } = data;
   const pc = pageConfig as PageConfig;
+
+  // Need tenant DB ID for blog section
+  let tenantDbId: string | null = null;
+  const enabledBlog = (pc.sections ?? []).find((s) => s.type === "blog" && s.enabled);
+  if (enabledBlog) {
+    const dbTenant = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } });
+    tenantDbId = dbTenant?.id ?? null;
+  }
 
   // Theme
   const dark = pc.theme === "dark";
@@ -744,6 +889,17 @@ export default async function TenantLandingPage({
                 dark={dark}
               />
             );
+          case "blog":
+            return tenantDbId ? (
+              <BlogSection
+                key={section.id}
+                section={section}
+                slug={slug}
+                tenantId={tenantDbId}
+                primaryColour={brand.primary_colour}
+                dark={dark}
+              />
+            ) : null;
           default:
             return null;
         }
